@@ -13,8 +13,11 @@ namespace SimpleFPS
 	public class Player : NetworkBehaviour
 	{
 		[Header("Identity")]
-		[Networked] public byte LocalIndex { get; set; }
-		
+		[Networked, OnChangedRender(nameof(LocalIndex_OnChangedRender))]
+		public int LocalIndex { get; set; } = -1;
+
+
+
 
 		[Header("Components")]
 		public SimpleKCC KCC;
@@ -64,6 +67,17 @@ namespace SimpleFPS
 			}
 
 			_sceneObjects = Runner.GetSingleton<SceneObjects>();
+		}
+
+		private void LocalIndex_OnChangedRender()
+		{
+			if (HasInputAuthority)
+			{
+				var screenManager = ScreenManager.Instance;
+				int cameraLayer = screenManager.firstPersonLayerStart + LocalIndex *2;
+				var virtualCam = CameraHandle.GetComponentInChildren<CinemachineVirtualCamera>(true);
+				virtualCam.gameObject.layer = cameraLayer;
+			}
 		}
 
 		public override void FixedUpdateNetwork()

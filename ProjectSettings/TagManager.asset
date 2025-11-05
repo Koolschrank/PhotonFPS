@@ -28,15 +28,15 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - FPS_Player1
+  - ThirdPerson_Player1
+  - FPS_Player2
+  - ThirdPerson_Player2
+  - FPS_Player3
+  - ThirdPerson_Player3
+  - FPS_Player4
+  - ThirdPerson_Player4
+  - NetworkPlayer
   m_SortingLayers:
   - name: Default
     uniqueID: 0

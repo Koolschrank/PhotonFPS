@@ -12,6 +12,8 @@ namespace SimpleFPS
 	/// </summary>
 	public struct PlayerData : INetworkStruct
 	{
+		
+
 		[Networked, Capacity(24)]
 		public string Nickname { get => default; set { } }
 		public PlayerRef PlayerRef;
@@ -36,6 +38,8 @@ namespace SimpleFPS
 	/// </summary>
 	public class Gameplay : NetworkBehaviour
 	{
+		public Action<PlayerKey> OnNewPlayerAdded;
+
 		public GameUI GameUI;
 		public Player PlayerPrefab;
 		public float GameDuration = 180f;
@@ -129,12 +133,17 @@ namespace SimpleFPS
 			SpawnPlayerForLocalIndex(playerRef, 0);
 
 			SpawnPlayerForLocalIndex(playerRef, 1);
+
+			SpawnPlayerForLocalIndex(playerRef, 2);
+
+			SpawnPlayerForLocalIndex(playerRef, 3);
 		}
 
 		private void SpawnPlayerForLocalIndex(PlayerRef playerRef, byte localIndex)
 		{
 			var key = new PlayerKey(playerRef, localIndex);
 
+			bool isNewPlayer = !PlayerData.ContainsKey(key);
 			if (PlayerData.TryGet(key, out var data) == false)
 			{
 				data = new PlayerData
@@ -147,6 +156,10 @@ namespace SimpleFPS
 					IsConnected = false
 				};
 			}
+			if (isNewPlayer)
+			{
+				RPC_PlayerAdded(key);
+			}
 
 			if (data.IsConnected)
 				return;
@@ -154,6 +167,7 @@ namespace SimpleFPS
 			data.IsConnected = true;
 			data.IsAlive = true;
 			PlayerData.Set(key, data);
+			
 
 			var spawnPoint = GetSpawnPoint();
 			var player = Runner.Spawn(PlayerPrefab, spawnPoint.position, spawnPoint.rotation, playerRef);
@@ -356,5 +370,13 @@ namespace SimpleFPS
 				PlayerData.Set(key, data);
 			}
 		}
+
+		[Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
+		private void RPC_PlayerAdded(PlayerKey playerKey)
+		{
+			OnNewPlayerAdded?.Invoke(playerKey);
+		}
+
+
 	}
 }
