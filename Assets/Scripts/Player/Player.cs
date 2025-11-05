@@ -67,7 +67,11 @@ namespace SimpleFPS
 			}
 
 			_sceneObjects = Runner.GetSingleton<SceneObjects>();
+
+			if (LocalIndex != -1)
+				LocalIndex_OnChangedRender();
 		}
+
 
 		private void LocalIndex_OnChangedRender()
 		{
@@ -79,6 +83,7 @@ namespace SimpleFPS
 				virtualCam.gameObject.layer = cameraLayer;
 			}
 		}
+
 
 		public override void FixedUpdateNetwork()
 		{
@@ -150,7 +155,7 @@ namespace SimpleFPS
 
 		private void ProcessInput(NetworkedInputPlayer input)
 		{
-			KCC.AddLookRotation(input.LookRotationDelta, -89f, 89f);
+			KCC.AddLookRotation(new Vector2(-input.LookRotationDelta.y, input.LookRotationDelta.x)  , -89f, 89f);
 			KCC.SetGravity(KCC.RealVelocity.y >= 0f ? -UpGravity : -DownGravity);
 
 			Vector3 moveDir = KCC.TransformRotation * new Vector3(input.MoveDirection.x, 0f, input.MoveDirection.y);

@@ -89,7 +89,7 @@ namespace SimpleFPS
 			PlayerManager.UpdatePlayerConnections(Runner, SpawnPlayer, DespawnPlayer);
 
 			// Start gameplay when enough players are connected
-			if (State == EGameplayState.Skirmish && PlayerData.Count > 1)
+			if (State == EGameplayState.Skirmish && PlayerData.Count > 4)
 			{
 				StartGameplay();
 			}
@@ -371,7 +371,7 @@ namespace SimpleFPS
 			}
 		}
 
-		[Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
+		[Rpc(RpcSources.StateAuthority, RpcTargets.All, Channel = RpcChannel.Reliable)]
 		private void RPC_PlayerAdded(PlayerKey playerKey)
 		{
 			OnNewPlayerAdded?.Invoke(playerKey);

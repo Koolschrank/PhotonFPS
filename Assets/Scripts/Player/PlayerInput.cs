@@ -1,7 +1,8 @@
-using UnityEngine;
-using UnityEngine.InputSystem;
 using Fusion;
 using Fusion.Addons.SimpleKCC;
+using SimpleFPS;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SimpleFPS
 {
@@ -14,6 +15,15 @@ namespace SimpleFPS
 		Rifle,
 		Shotgun,
 		Spray,
+
+		SwitchWeapon,
+		Crouch,
+		Melee,
+		Grenade,
+		Aim,
+
+
+
 	}
 
 	/// <summary>
@@ -26,10 +36,10 @@ namespace SimpleFPS
 		public NetworkedInputPlayer slot2;
 		public NetworkedInputPlayer slot3;
 
-		// Indexer to access slot by number (0-3)
+		// Safe indexer to get/set slots by index
 		public NetworkedInputPlayer this[int index]
 		{
-			get
+			readonly get
 			{
 				return index switch
 				{
@@ -37,7 +47,7 @@ namespace SimpleFPS
 					1 => slot1,
 					2 => slot2,
 					3 => slot3,
-					_ => throw new System.IndexOutOfRangeException($"Invalid slot index {index}")
+					_ => default
 				};
 			}
 			set
@@ -48,9 +58,34 @@ namespace SimpleFPS
 					case 1: slot1 = value; break;
 					case 2: slot2 = value; break;
 					case 3: slot3 = value; break;
-					default: throw new System.IndexOutOfRangeException($"Invalid slot index {index}");
+					default:
+						Debug.LogWarning($"[NetworkedInput] Invalid slot index {index}");
+						break;
 				}
 			}
+		}
+
+		/// <summary>
+		/// Sets the slot by index, used from InputCollector to fill player inputs.
+		/// </summary>
+		public void SetSlot(int index, in NetworkedInputPlayer slot)
+		{
+			this[index] = slot;
+		}
+
+		/// <summary>
+		/// Tries to get a slot safely without throwing.
+		/// </summary>
+		public bool TryGetSlot(int index, out NetworkedInputPlayer slot)
+		{
+			if ((uint)index > 3)
+			{
+				slot = default;
+				return false;
+			}
+
+			slot = this[index];
+			return true;
 		}
 	}
 
@@ -70,7 +105,7 @@ namespace SimpleFPS
 	{
 		public static float LookSensitivity = 1f;
 
-
+	
 		private NetworkedInput _accumulatedInput;
 		private Vector2Accumulator _lookRotationAccumulator = new Vector2Accumulator(0.02f, true);
 
@@ -149,6 +184,7 @@ namespace SimpleFPS
 
 		private void OnInput(NetworkRunner runner, NetworkInput networkInput)
 		{
+			return;
 			_accumulatedInput.slot0.LookRotationDelta = _lookRotationAccumulator.ConsumeTickAligned(runner);
 
 			// For now, only slot0 is sent. Other slots are empty.
