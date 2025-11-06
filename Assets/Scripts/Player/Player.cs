@@ -81,6 +81,15 @@ namespace SimpleFPS
 				int cameraLayer = screenManager.firstPersonLayerStart + LocalIndex *2;
 				var virtualCam = CameraHandle.GetComponentInChildren<CinemachineVirtualCamera>(true);
 				virtualCam.gameObject.layer = cameraLayer;
+
+				int thirdPersonLayer = cameraLayer + 1;
+				LayerTools.SetLayerRecursively(FirstPersonRoot, cameraLayer);
+				LayerTools.SetLayerRecursively(ThirdPersonRoot, thirdPersonLayer);
+				ThirdPersonRoot.SetActive(true);
+
+				Weapons.SetFirstPersonLayer(cameraLayer);
+				Weapons.SetThirdPersonLayer(thirdPersonLayer);
+				SetFirstPersonVisuals(true);
 			}
 		}
 

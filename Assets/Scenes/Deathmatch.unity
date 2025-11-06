@@ -13322,6 +13322,10 @@ PrefabInstance:
       propertyPath: 'm_Cameras.Array.data[1]'
       value: 
       objectReference: {fileID: 1510092484}
+    - target: {fileID: 4854737672222044009, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 134217728
+      objectReference: {fileID: 0}
     - target: {fileID: 6683967351275694887, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_Name
       value: Camera (2)
@@ -35901,6 +35905,10 @@ PrefabInstance:
       propertyPath: 'm_Cameras.Array.data[1]'
       value: 
       objectReference: {fileID: 1510092484}
+    - target: {fileID: 4854737672222044009, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 536870912
+      objectReference: {fileID: 0}
     - target: {fileID: 6683967351275694887, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_Name
       value: Camera (3)
@@ -36067,6 +36075,10 @@ PrefabInstance:
       propertyPath: 'm_Cameras.Array.data[1]'
       value: 
       objectReference: {fileID: 1510092484}
+    - target: {fileID: 4854737672222044009, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 33554432
+      objectReference: {fileID: 0}
     - target: {fileID: 6683967351275694887, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_Name
       value: Camera (1)
@@ -58296,12 +58308,20 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1510092484}
     - target: {fileID: 4854737672222044009, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 8388608
+      objectReference: {fileID: 0}
+    - target: {fileID: 4854737672222044009, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_NormalizedViewPortRect.height
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6683967351275694887, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_Name
       value: Camera
+      objectReference: {fileID: 0}
+    - target: {fileID: 8627377366302279234, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 3565158615
       objectReference: {fileID: 0}
     - target: {fileID: 8627377366302279234, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_NormalizedViewPortRect.height

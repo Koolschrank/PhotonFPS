@@ -36,6 +36,16 @@ namespace SimpleFPS
 		private bool _firstPersonActive;
 		private Setup _activeSetup;
 
+		public void SetFirstPersonLayer(int layer)
+		{
+			FirstPersonSetup.WeaponLayer = layer;
+		}
+
+		public void SetThirdPersonLayer(int layer)
+		{
+			ThirdPersonSetup.WeaponLayer = layer;
+		}
+
 		public void SetFirstPersonVisuals(bool firstPerson)
 		{
 			if (firstPerson == _firstPersonActive)
@@ -240,7 +250,7 @@ namespace SimpleFPS
 		{
 			public Transform WeaponHandle;
 			[Layer]
-			public int       WeaponLayer;
+			[NonSerialized]public int       WeaponLayer;
 			public Animator  Animator;
 			public HandSnap  LeftHandSnap;
 		}
