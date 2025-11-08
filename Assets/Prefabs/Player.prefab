@@ -1306,15 +1306,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55020a7f770834b69ad19c96313bfbf5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 7289181853176218816}
   FireTransform: {fileID: 5072942232072495766}
   FirstPersonSetup:
     WeaponHandle: {fileID: 8382402546335693135}
-    WeaponLayer: 8
     Animator: {fileID: 6685709305710314942}
     LeftHandSnap: {fileID: 5150150799673521}
   ThirdPersonSetup:
     WeaponHandle: {fileID: 1415502030778578817}
-    WeaponLayer: 6
     Animator: {fileID: 5984569209288009230}
     LeftHandSnap: {fileID: 0}
   WeaponSwitchTime: 0.7
@@ -2447,9 +2446,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Hands_Pistol
       objectReference: {fileID: 0}
-    - target: {fileID: 1724303580218482, guid: 9820bbe58bb57204db392c631110251c, type: 3}
+    - target: {fileID: 1425756895877542, guid: 9820bbe58bb57204db392c631110251c, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1724303580218482, guid: 9820bbe58bb57204db392c631110251c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4017127214583144, guid: 9820bbe58bb57204db392c631110251c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

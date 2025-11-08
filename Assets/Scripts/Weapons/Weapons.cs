@@ -11,6 +11,7 @@ namespace SimpleFPS
 	public class Weapons : NetworkBehaviour
 	{
 		[Header("Setup")]
+		public Player player;
 		public Transform FireTransform;
 		public Setup FirstPersonSetup;
 		public Setup ThirdPersonSetup;
@@ -40,11 +41,19 @@ namespace SimpleFPS
 		public void SetFirstPersonLayer(int layer)
 		{
 			FirstPersonSetup.WeaponLayer = layer;
+			if (_visibleWeapon != null&& _visibleWeapon.firstPersonVisible)
+			{
+				LayerTools.SetLayerRecursively(_visibleWeapon.FirstPersonVisual.gameObject, layer);
+			}
 		}
 
 		public void SetThirdPersonLayer(int layer)
 		{
 			ThirdPersonSetup.WeaponLayer = layer;
+			if (_visibleWeapon != null && _visibleWeapon.thirdPersonVisible)
+			{
+				LayerTools.SetLayerRecursively(_visibleWeapon.ThirdPersonVisual.gameObject, layer);
+			}
 		}
 
 		public void SetThirdPersonVisuals(bool thirdPerson)
@@ -188,8 +197,8 @@ namespace SimpleFPS
 
 					var weaponTransform = _visibleWeapon.ThirdPersonVisual.gameObject.transform;
 					var weaponPivot = _visibleWeapon.ThirdPersonVisual.Pivot;
-					weaponTransform.rotation = FirstPersonSetup.WeaponHandle.rotation * weaponPivot.localRotation;
-					weaponTransform.position = FirstPersonSetup.WeaponHandle.position + weaponTransform.rotation * weaponPivot.localPosition;
+					weaponTransform.rotation = ThirdPersonSetup.WeaponHandle.rotation * weaponPivot.localRotation;
+					weaponTransform.position = ThirdPersonSetup.WeaponHandle.position + weaponTransform.rotation * weaponPivot.localPosition;
 				}
 
 				
@@ -234,20 +243,25 @@ namespace SimpleFPS
 				weapon.ToggleVisibility(weapon == CurrentWeapon);
 			}
 
+			var playerKey = new PlayerKey(Runner.LocalPlayer, player.LocalIndex);
+			if (_visibleWeapon.OwnerPlayerKey.Equals(playerKey))
+			{
+				_visibleWeapon.OwnerPlayerKey = playerKey;
+			}
+
 			if (!_visibleWeapon.firstPersonVisible)
 			{
-				var spawnedWeaponVisual = Instantiate(CurrentWeapon.FirstPersonVisual.gameObject) as GameObject;
-				_visibleWeapon.firstPersonVisible = true;
-				spawnedWeaponVisual.transform.parent = _visibleWeapon.gameObject.transform;
+				_visibleWeapon.CreateFPSVisual();
+				LayerTools.SetLayerRecursively(_visibleWeapon.FirstPersonVisual.gameObject, FirstPersonSetup.WeaponLayer);
+
+				FirstPersonSetup.LeftHandSnap.Handle = _visibleWeapon.FirstPersonVisual.LeftHandHandle;
 			}
 			if (!_visibleWeapon.thirdPersonVisible)
 			{
-				var spawnedWeaponVisual = Instantiate(CurrentWeapon.ThirdPersonVisual.gameObject) as GameObject;
-				_visibleWeapon.thirdPersonVisible = true;
-				spawnedWeaponVisual.transform.parent = _visibleWeapon.gameObject.transform;
+				_visibleWeapon.CreateThirdPersonVisual();
+				LayerTools.SetLayerRecursively(_visibleWeapon.ThirdPersonVisual.gameObject, ThirdPersonSetup.WeaponLayer);
 			}
 
-			FirstPersonSetup.LeftHandSnap.Handle = _visibleWeapon.LeftHandHandle;
 
 			FirstPersonSetup.Animator.runtimeAnimatorController = _visibleWeapon.HandsAnimatorController;
 			ThirdPersonSetup.Animator.SetFloat(AnimatorId.WeaponId, Array.IndexOf(AllWeapons, CurrentWeapon));

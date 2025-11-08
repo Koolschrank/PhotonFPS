@@ -1,5 +1,6 @@
 using Fusion;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -21,6 +22,7 @@ namespace SimpleFPS
 	public class Weapon : NetworkBehaviour
 	{
 		public EWeaponType Type;
+		 
 
 		[Header("Fire Setup")]
 		public bool        IsAutomatic = true;
@@ -40,19 +42,7 @@ namespace SimpleFPS
 		[Header("Visuals")]
 		public Sprite      Icon;
 		public string      Name;
-		public Animator    WeaponAnimator;
 		public RuntimeAnimatorController HandsAnimatorController;
-
-		[Header("Holding")]
-		public Transform   FirstPersonPivot;
-		public Transform   ThirdPersonPivot;
-		public Transform   LeftHandHandle;
-
-		[Header("Fire Effect")]
-		[FormerlySerializedAs("MuzzleTransform")]
-		public Transform   MuzzleTransform;
-		public GameObject  MuzzleEffectPrefab;
-		public ProjectileVisual ProjectileVisualPrefab;
 
 		[Header("Sounds")]
 		public AudioSource FireSound;
@@ -63,10 +53,12 @@ namespace SimpleFPS
 		[NonSerialized] public bool firstPersonVisible = false;
 		[NonSerialized] public bool thirdPersonVisible = false;
 		public WeaponVisual_ThirdPerson ThirdPersonVisual;
-		public WeaponVisual FirstPersonVisual;
+		public WeaponVisual_FPS FirstPersonVisual;
 
 		public bool HasAmmo => ClipAmmo > 0 || RemainingAmmo > 0;
 
+		[Networked, HideInInspector]
+		public PlayerKey OwnerPlayerKey { get; set; }
 		[Networked, HideInInspector]
 		public NetworkBool IsCollected { get; set; }
 		[Networked, HideInInspector]
@@ -86,7 +78,6 @@ namespace SimpleFPS
 		private int _fireTicks;
 		private int _visibleFireCount;
 		private bool _reloadingVisible;
-		private GameObject _muzzleEffectInstance;
 		private SceneObjects _sceneObjects;
 
 		public bool Fire(Vector3 firePosition, Vector3 fireDirection, bool justPressed)
@@ -156,10 +147,10 @@ namespace SimpleFPS
 		{
 			gameObject.SetActive(isVisible);
 
-			if (_muzzleEffectInstance != null)
-			{
-				_muzzleEffectInstance.SetActive(false);
-			}
+			//if (_muzzleEffectInstance != null)
+			//{
+			//	_muzzleEffectInstance.SetActive(false);
+			//}
 		}
 
 		public float GetReloadProgress()
@@ -168,6 +159,22 @@ namespace SimpleFPS
 				return 1f;
 
 			return 1f - _fireCooldown.RemainingTime(Runner).GetValueOrDefault() / ReloadTime;
+		}
+
+		public void CreateFPSVisual()
+		{
+			var spawnedWeaponVisual = Instantiate(FirstPersonVisual.gameObject,transform);
+			firstPersonVisible = true;
+			FirstPersonVisual = spawnedWeaponVisual.GetComponent<WeaponVisual_FPS>();
+			FirstPersonVisual.CreateMuzzleFlash();
+		}
+
+		public void CreateThirdPersonVisual()
+		{
+			var spawnedWeaponVisual = Instantiate(ThirdPersonVisual.gameObject,transform);
+			thirdPersonVisible = true;
+			ThirdPersonVisual = spawnedWeaponVisual.GetComponent<WeaponVisual_ThirdPerson>();
+			ThirdPersonVisual.CreateMuzzleFlash();
 		}
 
 		public override void Spawned()
@@ -182,9 +189,6 @@ namespace SimpleFPS
 
 			float fireTime = 60f / FireRate;
 			_fireTicks = Mathf.CeilToInt(fireTime / Runner.DeltaTime);
-
-			_muzzleEffectInstance = Instantiate(MuzzleEffectPrefab, MuzzleTransform);
-			_muzzleEffectInstance.SetActive(false);
 
 			_sceneObjects = Runner.GetSingleton<SceneObjects>();
 		}
@@ -227,9 +231,14 @@ namespace SimpleFPS
 			for (int i = _visibleFireCount; i < _fireCount; i++)
 			{
 				var data = _projectileData[i % _projectileData.Length];
-
-				var projectileVisual = Instantiate(ProjectileVisualPrefab, MuzzleTransform.position, MuzzleTransform.rotation);
-				projectileVisual.SetHit(data.HitPosition, data.HitNormal, data.ShowHitEffect);
+				if (firstPersonVisible)
+				{
+					FirstPersonVisual.SpawnProjectile(data);
+				}
+				if (thirdPersonVisible)
+				{
+					ThirdPersonVisual.SpawnProjectile(data);
+				}
 			}
 
 			_visibleFireCount = _fireCount;
@@ -238,7 +247,14 @@ namespace SimpleFPS
 			{
 				if (IsReloading)
 				{
-					WeaponAnimator.SetTrigger("Reload");
+					if (firstPersonVisible)
+						{
+						FirstPersonVisual.SetAnimationTrigger("Reload");
+					}
+					if (thirdPersonVisible)
+					{
+						ThirdPersonVisual.SetAnimationTrigger("Reload");
+					}
 					ReloadingSound.Play();
 				}
 
@@ -248,6 +264,67 @@ namespace SimpleFPS
 
 		private void FireProjectile(Vector3 firePosition, Vector3 fireDirection)
 		{
+			var projectileData = new ProjectileData();
+			
+			var hitOptions = HitOptions.IncludePhysX;
+			var hits = new List<LagCompensatedHit>();
+
+			if ( 0<Runner.LagCompensation.RaycastAll(
+					firePosition,
+					fireDirection,
+					MaxHitDistance,
+					Object.InputAuthority,
+					hits,
+					HitMask,
+					true,
+					hitOptions))
+			{
+				LagCompensatedHit? bestValidHit = null;
+				float closestDistance = float.MaxValue;
+
+				foreach (var h in hits)
+				{
+					if (h.Hitbox != null)
+					{
+						var hitPlayer = h.Hitbox.Root.GetComponent<Player>();
+
+						// Ignore self (same InputAuthority and same LocalIndex)
+						if (hitPlayer != null &&
+							hitPlayer.Object.InputAuthority == Object.InputAuthority &&
+							hitPlayer.LocalIndex == OwnerPlayerKey.LocalIndex)
+							continue;
+					}
+
+					// Found a valid hit, pick the closest
+					if (h.Distance < closestDistance)
+					{
+						closestDistance = h.Distance;
+						bestValidHit = h;
+					}
+				}
+
+				if (bestValidHit.HasValue)
+				{
+					var hit = bestValidHit.Value;
+					projectileData.HitPosition = hit.Point;
+					projectileData.HitNormal = hit.Normal;
+
+					if (hit.Hitbox != null)
+						ApplyDamage(hit.Hitbox, hit.Point, fireDirection);
+					else
+						projectileData.ShowHitEffect = true;
+				}
+			}
+
+			_projectileData.Set(_fireCount % _projectileData.Length, projectileData);
+			_fireCount++;
+		}
+
+
+		/*private void FireProjectile(Vector3 firePosition, Vector3 fireDirection)
+		{
+			
+
 			var projectileData = new ProjectileData();
 
 			var hitOptions = HitOptions.IncludePhysX | HitOptions.IgnoreInputAuthority;
@@ -272,7 +349,7 @@ namespace SimpleFPS
 
 			_projectileData.Set(_fireCount % _projectileData.Length, projectileData);
 			_fireCount++;
-		}
+		}*/
 
 		private void PlayFireEffect()
 		{
@@ -281,11 +358,16 @@ namespace SimpleFPS
 				FireSound.PlayOneShot(FireSound.clip);
 			}
 
-			// Reset muzzle effect visibility.
-			_muzzleEffectInstance.SetActive(false);
-			_muzzleEffectInstance.SetActive(true);
-
-			WeaponAnimator.SetTrigger("Fire");
+			if (firstPersonVisible)
+			{
+				FirstPersonVisual.PlayMuzzleFlash();
+				FirstPersonVisual.SetAnimationTrigger("Fire");
+			}
+			if (thirdPersonVisible)
+			{
+				ThirdPersonVisual.PlayMuzzleFlash();
+				ThirdPersonVisual.SetAnimationTrigger("Fire");
+			}
 
 			GetComponentInParent<Player>().PlayFireEffect();
 		}
@@ -333,14 +415,17 @@ namespace SimpleFPS
 			}
 		}
 
-		/// <summary>
-		/// Structure representing single projectile shot.
-		/// </summary>
-		private struct ProjectileData : INetworkStruct
-		{
-			public Vector3     HitPosition;
-			public Vector3     HitNormal;
-			public NetworkBool ShowHitEffect;
-		}
+		
+		
+	}
+
+	/// <summary>
+	/// Structure representing single projectile shot.
+	/// </summary>
+	public struct ProjectileData : INetworkStruct
+	{
+		public Vector3 HitPosition;
+		public Vector3 HitNormal;
+		public NetworkBool ShowHitEffect;
 	}
 }

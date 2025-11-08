@@ -656,9 +656,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Pivot: {fileID: 2547727595960020817}
   LeftHandHandle: {fileID: 124320248261649741}
+  WeaponAnimator: {fileID: 577924028802104077}
   MuzzleTransform: {fileID: 7831176266669408985}
   MuzzleEffectPrefab: {fileID: 1569246640813692, guid: 43ab0ca5d42daf04a99c67697d0e9414, type: 3}
   ProjectileVisualPrefab: {fileID: 7491510959155936860, guid: 5041eeb12cd5049cea0ffc96bb0676f5, type: 3}
+  _muzzleEffectInstance: {fileID: 0}
 --- !u!1 &8105799503310786414
 GameObject:
   m_ObjectHideFlags: 0

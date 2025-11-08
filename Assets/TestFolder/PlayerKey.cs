@@ -9,9 +9,9 @@ namespace SimpleFPS
 	public struct PlayerKey : INetworkStruct, IEquatable<PlayerKey>
 	{
 		public PlayerRef PlayerRef; // The device connection
-		public byte LocalIndex;     // 0–3 for local players on that device
+		public int LocalIndex;     // 0–3 for local players on that device
 
-		public PlayerKey(PlayerRef playerRef, byte localIndex)
+		public PlayerKey(PlayerRef playerRef, int localIndex)
 		{
 			PlayerRef = playerRef;
 			LocalIndex = localIndex;
