@@ -1,4 +1,5 @@
 using Fusion;
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -58,6 +59,12 @@ namespace SimpleFPS
 		public AudioSource ReloadingSound;
 		public AudioSource EmptyClipSound;
 
+		[Header("Visuals")]
+		[NonSerialized] public bool firstPersonVisible = false;
+		[NonSerialized] public bool thirdPersonVisible = false;
+		public WeaponVisual_ThirdPerson ThirdPersonVisual;
+		public WeaponVisual FirstPersonVisual;
+
 		public bool HasAmmo => ClipAmmo > 0 || RemainingAmmo > 0;
 
 		[Networked, HideInInspector]
@@ -101,7 +108,7 @@ namespace SimpleFPS
 
 			// Random needs to be initialized with same seed on both input and
 			// state authority to ensure the projectiles are fired in the same direction on both.
-			Random.InitState(Runner.Tick * unchecked((int)Object.Id.Raw));
+			UnityEngine.Random.InitState(Runner.Tick * unchecked((int)Object.Id.Raw));
 
 			for (int i = 0; i < ProjectilesPerShot; i++)
 			{
@@ -110,7 +117,7 @@ namespace SimpleFPS
 				if (Dispersion > 0f)
 				{
 					// We use unit sphere on purpose -> non-uniform distribution (more projectiles in the center).
-					var dispersionRotation = Quaternion.Euler(Random.insideUnitSphere * Dispersion);
+					var dispersionRotation = Quaternion.Euler(UnityEngine.Random.insideUnitSphere * Dispersion);
 					projectileDirection = dispersionRotation * fireDirection;
 				}
 

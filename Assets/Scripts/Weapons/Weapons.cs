@@ -33,8 +33,9 @@ namespace SimpleFPS
 		private Weapon _pendingWeapon { get; set; }
 
 		private Weapon _visibleWeapon;
+		
 		private bool _firstPersonActive;
-		private Setup _activeSetup;
+		private bool _thirdPersonActive;
 
 		public void SetFirstPersonLayer(int layer)
 		{
@@ -46,20 +47,27 @@ namespace SimpleFPS
 			ThirdPersonSetup.WeaponLayer = layer;
 		}
 
+		public void SetThirdPersonVisuals(bool thirdPerson)
+		{
+			if (thirdPerson == _thirdPersonActive)
+				return;
+
+			_thirdPersonActive = thirdPerson;
+		}
+
 		public void SetFirstPersonVisuals(bool firstPerson)
 		{
 			if (firstPerson == _firstPersonActive)
 				return;
 
 			_firstPersonActive = firstPerson;
-			_activeSetup = firstPerson ? FirstPersonSetup : ThirdPersonSetup;
 
-			for (int i = 0; i < AllWeapons.Length; i++)
-			{
-				// First person weapons are rendered with a different (overlay) camera
-				// to prevent clipping through geometry.
-				AllWeapons[i].gameObject.SetLayer(_activeSetup.WeaponLayer, true);
-			}
+			//for (int i = 0; i < AllWeapons.Length; i++)
+			//{
+			//	// First person weapons are rendered with a different (overlay) camera
+			//	// to prevent clipping through geometry.
+			//	AllWeapons[i].gameObject.SetLayer(_activeSetup.WeaponLayer, true);
+			//}
 		}
 
 		public void Fire(bool justPressed)
@@ -159,7 +167,6 @@ namespace SimpleFPS
 			// This is the simplest solution when only few weapons are available in the game.
 			AllWeapons = GetComponentsInChildren<Weapon>();
 
-			_activeSetup = ThirdPersonSetup;
 		}
 
 		private void LateUpdate()
@@ -169,12 +176,23 @@ namespace SimpleFPS
 
 			if (_visibleWeapon != null)
 			{
-				var weaponTransform = _visibleWeapon.transform;
-				var weaponPivot = _firstPersonActive ? _visibleWeapon.FirstPersonPivot : _visibleWeapon.ThirdPersonPivot;
+				if (_firstPersonActive)
+				{
+					var weaponTransform = _visibleWeapon.FirstPersonVisual.gameObject.transform;
+					var weaponPivot = _visibleWeapon.FirstPersonVisual.Pivot;
+					weaponTransform.rotation = FirstPersonSetup.WeaponHandle.rotation * weaponPivot.localRotation;
+					weaponTransform.position = FirstPersonSetup.WeaponHandle.position + weaponTransform.rotation * weaponPivot.localPosition;
+				}
+				if (_thirdPersonActive)
+				{
 
-				// Snap visible weapon to weapon handle transform, use weapon pivot to adjust offset and rotation per weapon
-				weaponTransform.rotation = _activeSetup.WeaponHandle.rotation * weaponPivot.localRotation;
-				weaponTransform.position = _activeSetup.WeaponHandle.position + weaponTransform.rotation * weaponPivot.localPosition;
+					var weaponTransform = _visibleWeapon.ThirdPersonVisual.gameObject.transform;
+					var weaponPivot = _visibleWeapon.ThirdPersonVisual.Pivot;
+					weaponTransform.rotation = FirstPersonSetup.WeaponHandle.rotation * weaponPivot.localRotation;
+					weaponTransform.position = FirstPersonSetup.WeaponHandle.position + weaponTransform.rotation * weaponPivot.localPosition;
+				}
+
+				
 			}
 		}
 
@@ -214,6 +232,19 @@ namespace SimpleFPS
 			{
 				var weapon = AllWeapons[i];
 				weapon.ToggleVisibility(weapon == CurrentWeapon);
+			}
+
+			if (!_visibleWeapon.firstPersonVisible)
+			{
+				var spawnedWeaponVisual = Instantiate(CurrentWeapon.FirstPersonVisual.gameObject) as GameObject;
+				_visibleWeapon.firstPersonVisible = true;
+				spawnedWeaponVisual.transform.parent = _visibleWeapon.gameObject.transform;
+			}
+			if (!_visibleWeapon.thirdPersonVisible)
+			{
+				var spawnedWeaponVisual = Instantiate(CurrentWeapon.ThirdPersonVisual.gameObject) as GameObject;
+				_visibleWeapon.thirdPersonVisible = true;
+				spawnedWeaponVisual.transform.parent = _visibleWeapon.gameObject.transform;
 			}
 
 			FirstPersonSetup.LeftHandSnap.Handle = _visibleWeapon.LeftHandHandle;

@@ -57,7 +57,7 @@ namespace SimpleFPS
 		{
 			name = $"{Object.InputAuthority} (LocalIndex {LocalIndex})";
 
-			SetFirstPersonVisuals(HasInputAuthority);
+			SetVisuals(HasInputAuthority, true);
 
 			if (!HasInputAuthority)
 			{
@@ -89,7 +89,7 @@ namespace SimpleFPS
 
 				Weapons.SetFirstPersonLayer(cameraLayer);
 				Weapons.SetThirdPersonLayer(thirdPersonLayer);
-				SetFirstPersonVisuals(true);
+				SetVisuals(true, true);
 			}
 		}
 
@@ -108,7 +108,7 @@ namespace SimpleFPS
 				KCC.SetColliderLayer(LayerMask.NameToLayer("Ignore Raycast"));
 				KCC.SetCollisionLayerMask(LayerMask.GetMask("Default"));
 				HitboxRoot.HitboxRootActive = false;
-				SetFirstPersonVisuals(false);
+				SetVisuals(false, true);
 				return;
 			}
 
@@ -228,11 +228,12 @@ namespace SimpleFPS
 			CameraHandle.localRotation = Quaternion.Euler(pitch);
 		}
 
-		private void SetFirstPersonVisuals(bool firstPerson)
+		private void SetVisuals(bool firstPerson, bool thirdPerson)
 		{
 			FirstPersonRoot.SetActive(firstPerson);
-			ThirdPersonRoot.SetActive(!firstPerson);
+			ThirdPersonRoot.SetActive(thirdPerson);
 			Weapons.SetFirstPersonVisuals(firstPerson);
+			Weapons.SetThirdPersonVisuals(thirdPerson);
 		}
 
 		private Vector3 GetAnimationMoveVelocity()

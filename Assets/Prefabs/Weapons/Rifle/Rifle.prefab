@@ -58,6 +58,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -141,6 +144,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -224,6 +230,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -307,6 +316,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -390,6 +402,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -455,7 +470,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &2649766122909157273
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -469,6 +484,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -517,6 +533,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -973724649278464913, guid: bfbc8b07bd216478eb5fca35a6fe51e2, type: 2}
   m_audioClip: {fileID: 8300000, guid: 8f04b3ff514c3254898fc3754113a032, type: 3}
+  m_Resource: {fileID: 8300000, guid: 8f04b3ff514c3254898fc3754113a032, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.2
   m_Pitch: 1
@@ -660,6 +677,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -791,6 +811,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -973724649278464913, guid: bfbc8b07bd216478eb5fca35a6fe51e2, type: 2}
   m_audioClip: {fileID: 8300000, guid: cc988050393583047ad560d1ce931d72, type: 3}
+  m_Resource: {fileID: 8300000, guid: cc988050393583047ad560d1ce931d72, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.3
   m_Pitch: 1
@@ -1060,6 +1081,8 @@ MonoBehaviour:
   FireSound: {fileID: 5468680780558785418}
   ReloadingSound: {fileID: 3942870853927450008}
   EmptyClipSound: {fileID: 3543606550504981403}
+  ThirdPersonVisual: {fileID: 2733627364101906425, guid: 35b6f41c94324c54a8afb62b71c26689, type: 3}
+  FirstPersonVisual: {fileID: 2737856239244024688, guid: c456c21c8aa75a942ad4872e7cb20ee8, type: 3}
   _IsCollected:
     _value: 0
   _IsReloading:
@@ -1109,6 +1132,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -973724649278464913, guid: bfbc8b07bd216478eb5fca35a6fe51e2, type: 2}
   m_audioClip: {fileID: 8300000, guid: b2b6ab2f5d8119848901a04e09b44e14, type: 3}
+  m_Resource: {fileID: 8300000, guid: b2b6ab2f5d8119848901a04e09b44e14, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.2
   m_Pitch: 1
