@@ -17,7 +17,7 @@ namespace SimpleFPS
 		[Networked, Capacity(24)]
 		public string Nickname { get => default; set { } }
 		public PlayerRef PlayerRef;
-		public byte LocalIndex;
+		public int LocalIndex;
 		public int Kills;
 		public int Deaths;
 		public int LastKillTick;
@@ -48,6 +48,8 @@ namespace SimpleFPS
 
 		[Networked, Capacity(32), HideInInspector]
 		public NetworkDictionary<PlayerKey, PlayerData> PlayerData { get; }
+
+		public Dictionary<PlayerKey, Player> PlayerDict { get; } = new Dictionary<PlayerKey, Player>(); // only for host to track spawned players
 
 		[Networked, HideInInspector]
 		public TickTimer RemainingTime { get; set; }
@@ -89,7 +91,7 @@ namespace SimpleFPS
 			PlayerManager.UpdatePlayerConnections(Runner, SpawnPlayer, DespawnPlayer);
 
 			// Start gameplay when enough players are connected
-			if (State == EGameplayState.Skirmish && PlayerData.Count > 4)
+			if (State == EGameplayState.Skirmish && PlayerData.Count > 2)
 			{
 				StartGameplay();
 			}
@@ -133,14 +135,11 @@ namespace SimpleFPS
 			SpawnPlayerForLocalIndex(playerRef, 0);
 
 			SpawnPlayerForLocalIndex(playerRef, 1);
-
-			SpawnPlayerForLocalIndex(playerRef, 2);
-
-			SpawnPlayerForLocalIndex(playerRef, 3);
 		}
 
-		private void SpawnPlayerForLocalIndex(PlayerRef playerRef, byte localIndex)
+		private void SpawnPlayerForLocalIndex(PlayerRef playerRef, int localIndex)
 		{
+			Debug.Log($"Spawning player for {playerRef} localIndex={localIndex}");
 			var key = new PlayerKey(playerRef, localIndex);
 
 			bool isNewPlayer = !PlayerData.ContainsKey(key);
@@ -169,20 +168,33 @@ namespace SimpleFPS
 			PlayerData.Set(key, data);
 			
 
+			RespawnPlayer(key);
+		}
+
+		public void RespawnPlayer(PlayerKey playerKey)
+		{
+			if (!HasStateAuthority) return;
+
+			if (PlayerDict.TryGetValue(playerKey, out var existingPlayer))
+			{
+				Runner.Despawn(existingPlayer.Object);
+				PlayerDict.Remove(playerKey);
+			}
+
 			var spawnPoint = GetSpawnPoint();
-			var player = Runner.Spawn(PlayerPrefab, spawnPoint.position, spawnPoint.rotation, playerRef);
+			var player = Runner.Spawn(PlayerPrefab, spawnPoint.position, spawnPoint.rotation, playerKey.PlayerRef);
+
+			PlayerDict.Add(playerKey, player);
 
 			// Optional: assign local index to the Player instance (if your Player script supports it)
 			if (player.TryGetComponent(out Player playerScript))
 			{
-				playerScript.LocalIndex = localIndex;
+				playerScript.LocalIndex = playerKey.LocalIndex;
 			}
-				
 
-			Runner.SetPlayerObject(playerRef, player.Object);
+
+			Runner.SetPlayerObject(playerKey.PlayerRef, player.Object);
 			RecalculateStatisticPositions();
-
-			Debug.Log($"Spawned player for {playerRef} localIndex={localIndex}");
 		}
 
 
@@ -238,7 +250,7 @@ namespace SimpleFPS
 
 			if (Runner == null)
 				yield break;
-
+			/*
 			// NOTE: Runner.GetPlayerObject(playerRef) returns the single player object
 			// registered for that PlayerRef via Runner.SetPlayerObject(...).
 			// If you support multiple local players per device later, do NOT rely on
@@ -250,7 +262,7 @@ namespace SimpleFPS
 				// this will despawn it safely. If you support multiple local avatars, you'll
 				// need a different per-key mapping and despawn logic.
 				Runner.Despawn(existingPlayerObj);
-			}
+			}*/
 
 			if (PlayerData.TryGet(key, out var data) == false || data.IsConnected == false)
 				yield break;
@@ -258,7 +270,9 @@ namespace SimpleFPS
 			data.IsAlive = true;
 			PlayerData.Set(key, data);
 
-			var spawnPoint = GetSpawnPoint();
+			//var spawnPoint = GetSpawnPoint();
+			RespawnPlayer(key);
+			/*
 			var playerObject = Runner.Spawn(PlayerPrefab, spawnPoint.position, spawnPoint.rotation, key.PlayerRef);
 
 			// If your Player script has fields for PlayerKey / LocalIndex, set them here:
@@ -272,7 +286,7 @@ namespace SimpleFPS
 			Runner.SetPlayerObject(key.PlayerRef, playerObject.Object);
 
 			// If you later support >1 local player per device, replace Runner.SetPlayerObject
-			// with a custom mapping per PlayerKey (see notes below).
+			// with a custom mapping per PlayerKey (see notes below).*/
 		}
 
 

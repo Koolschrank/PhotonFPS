@@ -93,6 +93,12 @@ namespace SimpleFPS
 			}
 		}
 
+		public void DisableFPSCamera()
+		{
+			var virtualCam = CameraHandle.GetComponentInChildren<CinemachineVirtualCamera>(true);
+			virtualCam.gameObject.SetActive(false);
+		}
+
 
 		public override void FixedUpdateNetwork()
 		{

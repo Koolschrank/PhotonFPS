@@ -68,7 +68,6 @@ namespace SimpleFPS
 
 		public void OnInput(NetworkRunner runner, NetworkInput networkInput)
 		{
-			Debug.Log("[InputCollector] Collecting input from sources...");
 			if (sources.Count == 0)
 				return;
 
@@ -76,7 +75,6 @@ namespace SimpleFPS
 
 			for (int i = 0; i < sources.Count && i < 4; i++)
 			{
-				Debug.Log($"[InputCollector] Collecting input from source {i}");
 				var src = sources[i];
 				var slot = new NetworkedInputPlayer
 				{
@@ -86,7 +84,6 @@ namespace SimpleFPS
 				};
 				input.SetSlot(i, slot);
 			}
-			Debug.Log("[InputCollector] Setting network input.");
 			networkInput.Set(input);
 		}
 

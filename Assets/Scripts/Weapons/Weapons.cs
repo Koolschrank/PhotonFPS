@@ -35,8 +35,8 @@ namespace SimpleFPS
 
 		private Weapon _visibleWeapon;
 		
-		private bool _firstPersonActive;
-		private bool _thirdPersonActive;
+		public bool _firstPersonActive;
+		public bool _thirdPersonActive;
 
 		public void SetFirstPersonLayer(int layer)
 		{
@@ -244,22 +244,21 @@ namespace SimpleFPS
 			}
 
 			var playerKey = new PlayerKey(Runner.LocalPlayer, player.LocalIndex);
-			if (_visibleWeapon.OwnerPlayerKey.Equals(playerKey))
+			if (!_visibleWeapon.OwnerPlayerKey.Equals(playerKey))
 			{
 				_visibleWeapon.OwnerPlayerKey = playerKey;
 			}
 
-			if (!_visibleWeapon.firstPersonVisible)
+			if (_firstPersonActive&&!_visibleWeapon.firstPersonVisible)
 			{
-				_visibleWeapon.CreateFPSVisual();
-				LayerTools.SetLayerRecursively(_visibleWeapon.FirstPersonVisual.gameObject, FirstPersonSetup.WeaponLayer);
+				_visibleWeapon.CreateFPSVisual(FirstPersonSetup.WeaponLayer);
+				
 
 				FirstPersonSetup.LeftHandSnap.Handle = _visibleWeapon.FirstPersonVisual.LeftHandHandle;
 			}
-			if (!_visibleWeapon.thirdPersonVisible)
+			if (_thirdPersonActive && !_visibleWeapon.thirdPersonVisible)
 			{
-				_visibleWeapon.CreateThirdPersonVisual();
-				LayerTools.SetLayerRecursively(_visibleWeapon.ThirdPersonVisual.gameObject, ThirdPersonSetup.WeaponLayer);
+				_visibleWeapon.CreateThirdPersonVisual(ThirdPersonSetup.WeaponLayer);
 			}
 
 

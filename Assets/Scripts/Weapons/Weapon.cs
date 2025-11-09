@@ -161,20 +161,22 @@ namespace SimpleFPS
 			return 1f - _fireCooldown.RemainingTime(Runner).GetValueOrDefault() / ReloadTime;
 		}
 
-		public void CreateFPSVisual()
+		public void CreateFPSVisual(int layer)
 		{
 			var spawnedWeaponVisual = Instantiate(FirstPersonVisual.gameObject,transform);
 			firstPersonVisible = true;
 			FirstPersonVisual = spawnedWeaponVisual.GetComponent<WeaponVisual_FPS>();
 			FirstPersonVisual.CreateMuzzleFlash();
+			LayerTools.SetLayerRecursively(FirstPersonVisual.gameObject, layer);
 		}
 
-		public void CreateThirdPersonVisual()
+		public void CreateThirdPersonVisual(int layer)
 		{
 			var spawnedWeaponVisual = Instantiate(ThirdPersonVisual.gameObject,transform);
 			thirdPersonVisible = true;
 			ThirdPersonVisual = spawnedWeaponVisual.GetComponent<WeaponVisual_ThirdPerson>();
 			ThirdPersonVisual.CreateMuzzleFlash();
+			LayerTools.SetLayerRecursively(ThirdPersonVisual.gameObject, layer);
 		}
 
 		public override void Spawned()
@@ -387,8 +389,7 @@ namespace SimpleFPS
 				damage *= 2f;
 			}
 
-			var playerKey = new PlayerKey(Object.InputAuthority, 0);
-			if (enemyHealth.ApplyDamage(playerKey, damage, position, direction, Type, isCriticalHit) == false)
+			if (enemyHealth.ApplyDamage(OwnerPlayerKey, damage, position, direction, Type, isCriticalHit) == false)
 				return;
 
 			if (HasInputAuthority && Runner.IsForward)

@@ -1353,6 +1353,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13e08f7ea5af4b80907f2f169a88f45a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Player: {fileID: 7289181853176218816}
   MaxHealth: 100
   MaxShild: 100
   ShieldRechargeDelay: 4.5

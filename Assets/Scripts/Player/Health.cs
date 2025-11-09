@@ -8,6 +8,7 @@ namespace SimpleFPS
 	/// </summary>
 	public class Health : NetworkBehaviour
 	{
+		public Player	  Player;
 		public float      MaxHealth = 100f;
 		public float      MaxShild = 100f;
 		public float      ShieldRechargeDelay = 4.5f;
@@ -65,7 +66,8 @@ namespace SimpleFPS
 			{
 				CurrentHealth = 0f;
 
-				var playerKey = new PlayerKey(Object.InputAuthority, 0);
+				var playerKey = new PlayerKey(Object.InputAuthority, Player.LocalIndex);
+				Player.DisableFPSCamera();
 				_sceneObjects.Gameplay.PlayerKilled(instigator, playerKey, weaponType, isCritical);
 			}
 
