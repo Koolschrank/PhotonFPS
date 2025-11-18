@@ -1,8 +1,9 @@
 using UnityEngine;
 using Fusion;
 using Fusion.Addons.SimpleKCC;
-using Cinemachine;
+
 using System;
+using Unity.Cinemachine;
 
 namespace SimpleFPS
 {
