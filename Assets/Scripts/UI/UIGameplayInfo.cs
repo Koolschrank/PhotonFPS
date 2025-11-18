@@ -24,7 +24,7 @@ namespace SimpleFPS
 		public GameObject      RemainingTime2;
 		public GameObject      RemainingTime1;
 
-		private GameUI _gameUI;
+		private PlayerUI _playerUI;
 
 		private int _lastTime = -1;
 		private int _lastPosition;
@@ -40,20 +40,20 @@ namespace SimpleFPS
 			RemainingTime2.SetActive(false);
 			RemainingTime1.SetActive(false);
 
-			_gameUI = GetComponentInParent<GameUI>();
+			_playerUI = GetComponentInParent<PlayerUI>();
 		}
 
 		private void Update()
 		{
-			if (_gameUI.Runner == null)
+			if (_playerUI.Runner == null)
 				return;
 
-			var gameplay = _gameUI.Gameplay;
+			var gameplay = _playerUI.Gameplay;
 
 			if (gameplay.Object == null || gameplay.Object.IsValid == false)
 				return;
 
-			int remainingTime = (int)gameplay.RemainingTime.RemainingTime(_gameUI.Runner).GetValueOrDefault();
+			int remainingTime = (int)gameplay.RemainingTime.RemainingTime(_playerUI.Runner).GetValueOrDefault();
 			if (remainingTime == _lastTime)
 				return;
 
@@ -64,7 +64,7 @@ namespace SimpleFPS
 
 			ShowGameplayTime(remainingTime);
 
-			var playerKey = new PlayerKey(_gameUI.Runner.LocalPlayer, 0);
+			var playerKey = new PlayerKey(_playerUI.Runner.LocalPlayer, 0);
 			if (gameplay.PlayerData.TryGet(playerKey, out PlayerData playerData))
 			{
 				ShowPlayerData(playerData);

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static Unity.Collections.Unicode;
 
 namespace SimpleFPS
 {
@@ -42,6 +43,8 @@ namespace SimpleFPS
 				inputManager.onPlayerJoined += OnPlayerJoined;
 
 			Debug.Log("[InputCollector] Ready – waiting for controllers.");
+
+			
 		}
 
 		private void OnDestroy()
@@ -62,6 +65,11 @@ namespace SimpleFPS
 
 			src.playerIndex = sources.Count;
 			sources.Add(src);
+
+			if (sources.Count > 1)
+			{
+				runner.GetSingleton<SceneObjects>().Gameplay.CallLocalPlayerSpawnRPC(new PlayerKey( runner.LocalPlayer, sources.Count - 1));
+			}
 
 			Debug.Log($"[InputCollector] New InputSource joined → slot {src.playerIndex}");
 		}
@@ -85,6 +93,8 @@ namespace SimpleFPS
 				input.SetSlot(i, slot);
 			}
 			networkInput.Set(input);
+
+			
 		}
 
 		public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }

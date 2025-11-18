@@ -14,23 +14,23 @@ namespace SimpleFPS
 		[HideInInspector]
 		public NetworkRunner  Runner;
 
-		public UIPlayerView   PlayerView;
-		public UIGameplayView GameplayView;
-		public UIGameOverView GameOverView;
-		public GameObject     ScoreboardView;
-		public GameObject     MenuView;
-		public UISettingsView SettingsView;
+		//public UIPlayerView   PlayerView;
+		//public UIGameplayView GameplayView;
+		//public UIGameOverView GameOverView;
+		//public GameObject     ScoreboardView;
+		//public GameObject     MenuView;
+		//public UISettingsView SettingsView;
 		public GameObject     DisconnectedView;
 
 		// Called from NetworkEvents on NetworkRunner object
 		public void OnRunnerShutdown(NetworkRunner runner, ShutdownReason reason)
 		{
-			if (GameOverView.gameObject.activeSelf)
-				return; // Regular shutdown - GameOver already active
+			//if (GameOverView.gameObject.activeSelf)
+			//	return; // Regular shutdown - GameOver already active
 
-			ScoreboardView.SetActive(false);
-			SettingsView.gameObject.SetActive(false);
-			MenuView.gameObject.SetActive(false);
+			//ScoreboardView.SetActive(false);
+			//SettingsView.gameObject.SetActive(false);
+			//MenuView.gameObject.SetActive(false);
 
 			DisconnectedView.SetActive(true);
 		}
@@ -47,12 +47,12 @@ namespace SimpleFPS
 
 		private void Awake()
 		{
-			PlayerView.gameObject.SetActive(false);
-			MenuView.SetActive(false);
-			SettingsView.gameObject.SetActive(false);
+			//PlayerView.gameObject.SetActive(false);
+			//MenuView.SetActive(false);
+			//SettingsView.gameObject.SetActive(false);
 			DisconnectedView.SetActive(false);
 
-			SettingsView.LoadSettings();
+			//SettingsView.LoadSettings();
 
 			// Make sure the cursor starts unlocked
 			Cursor.lockState = CursorLockMode.None;
@@ -61,41 +61,41 @@ namespace SimpleFPS
 
 		private void Update()
 		{
-			if (Application.isBatchMode == true)
-				return;
+			//if (Application.isBatchMode == true)
+			//	return;
 
-			if (Gameplay.Object == null || Gameplay.Object.IsValid == false)
-				return;
+			//if (Gameplay.Object == null || Gameplay.Object.IsValid == false)
+			//	return;
 
-			Runner = Gameplay.Runner;
+			//Runner = Gameplay.Runner;
 
-			var keyboard = Keyboard.current;
-			bool gameplayActive = Gameplay.State < EGameplayState.Finished;
+			//var keyboard = Keyboard.current;
+			//bool gameplayActive = Gameplay.State < EGameplayState.Finished;
 
-			ScoreboardView.SetActive(gameplayActive && keyboard != null && keyboard.tabKey.isPressed);
+			//ScoreboardView.SetActive(gameplayActive && keyboard != null && keyboard.tabKey.isPressed);
 
-			if (gameplayActive && keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-			{
-				MenuView.SetActive(!MenuView.activeSelf);
-			}
+			//if (gameplayActive && keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+			//{
+			//	MenuView.SetActive(!MenuView.activeSelf);
+			//}
 
-			GameplayView.gameObject.SetActive(gameplayActive);
-			GameOverView.gameObject.SetActive(gameplayActive == false);
+			//GameplayView.gameObject.SetActive(gameplayActive);
+			//GameOverView.gameObject.SetActive(gameplayActive == false);
 
-			var playerObject = Runner.GetPlayerObject(Runner.LocalPlayer);
-			if (playerObject != null)
-			{
-				var player = playerObject.GetComponent<Player>();
-				var key = new PlayerKey(Runner.LocalPlayer, 0);
-				var playerData = Gameplay.PlayerData.Get(key);
+			//var playerObject = Runner.GetPlayerObject(Runner.LocalPlayer);
+			//if (playerObject != null)
+			//{
+			//	var player = playerObject.GetComponent<Player>();
+			//	var key = new PlayerKey(Runner.LocalPlayer, 0);
+			//	var playerData = Gameplay.PlayerData.Get(key);
 
-				PlayerView.UpdatePlayer(player, playerData);
-				PlayerView.gameObject.SetActive(gameplayActive);
-			}
-			else
-			{
-				PlayerView.gameObject.SetActive(false);
-			}
+			//	PlayerView.UpdatePlayer(player, playerData);
+			//	PlayerView.gameObject.SetActive(gameplayActive);
+			//}
+			//else
+			//{
+			//	PlayerView.gameObject.SetActive(false);
+			//}
 		}
 	}
 }

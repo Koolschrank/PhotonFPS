@@ -2,6 +2,7 @@ using UnityEngine;
 using Fusion;
 using Fusion.Addons.SimpleKCC;
 using Cinemachine;
+using System;
 
 namespace SimpleFPS
 {
@@ -50,13 +51,15 @@ namespace SimpleFPS
 
 		private int _visibleJumpCount;
 		private SceneObjects _sceneObjects;
+		[NonSerialized]
+		public bool isSpawned = false;
 
 		#region Spawn & Networked Lifecycle
 
 		public override void Spawned()
 		{
-			name = $"{Object.InputAuthority} (LocalIndex {LocalIndex})";
 
+			isSpawned = true;
 			SetVisuals(HasInputAuthority, true);
 
 			if (!HasInputAuthority)
@@ -68,15 +71,18 @@ namespace SimpleFPS
 
 			_sceneObjects = Runner.GetSingleton<SceneObjects>();
 
-			if (LocalIndex != -1)
+
+
+			if (LocalIndex >= 0)
 				LocalIndex_OnChangedRender();
 		}
 
 
 		private void LocalIndex_OnChangedRender()
 		{
-			if (HasInputAuthority)
+			if (HasInputAuthority && isSpawned)
 			{
+				
 				var screenManager = ScreenManager.Instance;
 				int cameraLayer = screenManager.firstPersonLayerStart + LocalIndex *2;
 				var virtualCam = CameraHandle.GetComponentInChildren<CinemachineVirtualCamera>(true);
@@ -90,6 +96,9 @@ namespace SimpleFPS
 				Weapons.SetFirstPersonLayer(cameraLayer);
 				Weapons.SetThirdPersonLayer(thirdPersonLayer);
 				SetVisuals(true, true);
+				
+				_sceneObjects.Device.LocalPlayerObjectSpawned(this);
+				name = $"{Object.InputAuthority} (LocalIndex {LocalIndex})";
 			}
 		}
 
@@ -151,7 +160,7 @@ namespace SimpleFPS
 			if (_visibleJumpCount < _jumpCount)
 			{
 				Animator.SetTrigger("Jump");
-				JumpSound.clip = JumpClips[Random.Range(0, JumpClips.Length)];
+				JumpSound.clip = JumpClips[UnityEngine.Random.Range(0, JumpClips.Length)];
 				JumpSound.Play();
 			}
 
@@ -162,6 +171,11 @@ namespace SimpleFPS
 		{
 			if (HasInputAuthority)
 				RefreshCamera();
+		}
+
+		public override void Despawned(NetworkRunner runner, bool hasState)
+		{
+			isSpawned = false;
 		}
 
 		#endregion

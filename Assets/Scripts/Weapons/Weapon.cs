@@ -395,7 +395,8 @@ namespace SimpleFPS
 			if (HasInputAuthority && Runner.IsForward)
 			{
 				// For local player show UI hit effect.
-				_sceneObjects.GameUI.PlayerView.Crosshair.ShowHit(enemyHealth.IsAlive == false, isCriticalHit);
+
+				_sceneObjects.Device.uiManager.playerViews[OwnerPlayerKey.LocalIndex].PlayerView.Crosshair.ShowHit(enemyHealth.IsAlive == false, isCriticalHit);
 			}
 		}
 

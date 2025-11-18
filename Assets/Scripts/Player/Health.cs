@@ -94,7 +94,7 @@ namespace SimpleFPS
 			{
 				// Heal effect is shown only to local player.
 				// We assume the prediction will be correct most of the time so we don't need to network anything explicitly.
-				_sceneObjects.GameUI.PlayerView.Health.ShowHeal(health);
+				_sceneObjects.Device.uiManager.playerViews[Player.LocalIndex].PlayerView.Health.ShowHeal(health);
 			}
 
 			return true;

@@ -43,7 +43,7 @@ namespace SimpleFPS
 		public void CloseView()
 		{
 			gameObject.SetActive(false);
-			GetComponentInParent<GameUI>().MenuView.SetActive(false);
+			GetComponentInParent<PlayerUI>().MenuView.SetActive(false);
 		}
 
 		private void Update()

@@ -41,6 +41,7 @@ namespace SimpleFPS
 		public Action<PlayerKey> OnNewPlayerAdded;
 
 		public GameUI GameUI;
+		public Device Device;
 		public Player PlayerPrefab;
 		public float GameDuration = 180f;
 		public float PlayerRespawnTime = 5f;
@@ -48,7 +49,6 @@ namespace SimpleFPS
 
 		[Networked, Capacity(32), HideInInspector]
 		public NetworkDictionary<PlayerKey, PlayerData> PlayerData { get; }
-
 		public Dictionary<PlayerKey, Player> PlayerDict { get; } = new Dictionary<PlayerKey, Player>(); // only for host to track spawned players
 
 		[Networked, HideInInspector]
@@ -91,7 +91,19 @@ namespace SimpleFPS
 			PlayerManager.UpdatePlayerConnections(Runner, SpawnPlayer, DespawnPlayer);
 
 			// Start gameplay when enough players are connected
-			if (State == EGameplayState.Skirmish && PlayerData.Count > 2)
+
+			bool otherDevicesConnected = false;
+			foreach (var pair in PlayerData)
+			{
+				if (pair.Value.IsConnected && pair.Key.PlayerRef != Runner.LocalPlayer)
+				{
+					otherDevicesConnected = true;
+					break;
+				}
+			}
+
+
+			if (State == EGameplayState.Skirmish && otherDevicesConnected)
 			{
 				StartGameplay();
 			}
@@ -134,7 +146,11 @@ namespace SimpleFPS
 		{
 			SpawnPlayerForLocalIndex(playerRef, 0);
 
-			SpawnPlayerForLocalIndex(playerRef, 1);
+			//SpawnPlayerForLocalIndex(playerRef, 1);
+
+			//SpawnPlayerForLocalIndex(playerRef, 2);
+
+			//SpawnPlayerForLocalIndex(playerRef, 3);
 		}
 
 		private void SpawnPlayerForLocalIndex(PlayerRef playerRef, int localIndex)
@@ -182,16 +198,20 @@ namespace SimpleFPS
 			}
 
 			var spawnPoint = GetSpawnPoint();
-			var player = Runner.Spawn(PlayerPrefab, spawnPoint.position, spawnPoint.rotation, playerKey.PlayerRef);
 
+			var player = Runner.Spawn(
+				PlayerPrefab, 
+				spawnPoint.position, 
+				spawnPoint.rotation, 
+				playerKey.PlayerRef, 
+				onBeforeSpawned: (runner, newObj) =>
+				{
+					if (newObj.TryGetComponent(out Player p))
+					{
+						p.LocalIndex = playerKey.LocalIndex;
+					}
+				});
 			PlayerDict.Add(playerKey, player);
-
-			// Optional: assign local index to the Player instance (if your Player script supports it)
-			if (player.TryGetComponent(out Player playerScript))
-			{
-				playerScript.LocalIndex = playerKey.LocalIndex;
-			}
-
 
 			Runner.SetPlayerObject(playerKey.PlayerRef, player.Object);
 			RecalculateStatisticPositions();
@@ -371,7 +391,12 @@ namespace SimpleFPS
 			string killerNickname = PlayerData.TryGet(killerKey, out var killerData) ? killerData.Nickname : "???";
 			string victimNickname = PlayerData.TryGet(victimKey, out var victimData) ? victimData.Nickname : "???";
 
-			GameUI.GameplayView.KillFeed.ShowKill(killerNickname, victimNickname, weaponType, isCriticalKill);
+			var playerUIs = Device.uiManager.playerViews;
+			foreach
+				(var playerUI in playerUIs)
+			{
+				playerUI.GameplayView.KillFeed.ShowKill(killerNickname, victimNickname, weaponType, isCriticalKill);
+			}
 		}
 
 		[Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
@@ -389,6 +414,17 @@ namespace SimpleFPS
 		private void RPC_PlayerAdded(PlayerKey playerKey)
 		{
 			OnNewPlayerAdded?.Invoke(playerKey);
+		}
+
+		public void CallLocalPlayerSpawnRPC(PlayerKey playerKey)
+		{
+			RPC_LocalPlayerSpawned(playerKey);
+		}
+
+		[Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
+		private void RPC_LocalPlayerSpawned(PlayerKey playerKey)
+		{
+			SpawnPlayerForLocalIndex(playerKey.PlayerRef, playerKey.LocalIndex);
 		}
 
 

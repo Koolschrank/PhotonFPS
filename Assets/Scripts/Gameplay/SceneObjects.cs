@@ -43,7 +43,24 @@ namespace SimpleFPS
 			}
 		}
 
+		public Device Device
+		{
+			get
+			{
+				if (_device == null && Runner != null && Runner.SceneManager != null && Runner.SceneManager.MainRunnerScene.IsValid())
+				{
+					var devices = Runner.SceneManager.MainRunnerScene.GetComponents<Device>(true);
+					if (devices.Length > 0)
+					{
+						_device = devices[0];
+					}
+				}
+				return _device;
+			}
+		}
+
 		private Gameplay _gameplay;
 		private GameUI _gameUI;
+		private Device _device;
 	}
 }

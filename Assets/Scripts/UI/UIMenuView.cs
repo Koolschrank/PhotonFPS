@@ -4,7 +4,7 @@ namespace SimpleFPS
 {
 	public class UIMenuView : MonoBehaviour
 	{
-		private GameUI _gameUI;
+		private PlayerUI _PlayerUI;
 
 		private CursorLockMode _previousLockState;
 		private bool _previousCursorVisibility;
@@ -18,7 +18,7 @@ namespace SimpleFPS
 		// Called from button OnClick event.
 		public void OpenSettings()
 		{
-			_gameUI.SettingsView.gameObject.SetActive(true);
+			_PlayerUI.SettingsView.gameObject.SetActive(true);
 		}
 
 		// Called from button OnClick event.
@@ -28,12 +28,12 @@ namespace SimpleFPS
 			_previousLockState = CursorLockMode.None;
 			_previousCursorVisibility = true;
 
-			_gameUI.GoToMenu();
+			_PlayerUI.GoToMenu();
 		}
 
 		private void Awake()
 		{
-			_gameUI = GetComponentInParent<GameUI>();
+			_PlayerUI = GetComponentInParent<PlayerUI>();
 		}
 
 		private void OnEnable()
