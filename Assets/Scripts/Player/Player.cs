@@ -27,6 +27,7 @@ namespace SimpleFPS
 		public Health Health;
 		public Animator Animator;
 		public HitboxRoot HitboxRoot;
+		public CinemachineCamera thirdPersonCamera;
 
 		[Header("Setup")]
 		public float MoveSpeed = 6f;
@@ -65,7 +66,7 @@ namespace SimpleFPS
 
 			if (!HasInputAuthority)
 			{
-				var virtualCams = GetComponentsInChildren<CinemachineVirtualCamera>(true);
+				var virtualCams = GetComponentsInChildren<CinemachineCamera>(true);
 				foreach (var cam in virtualCams)
 					cam.enabled = false;
 			}
@@ -86,8 +87,10 @@ namespace SimpleFPS
 				
 				var screenManager = ScreenManager.Instance;
 				int cameraLayer = screenManager.firstPersonLayerStart + LocalIndex *2;
-				var virtualCam = CameraHandle.GetComponentInChildren<CinemachineVirtualCamera>(true);
+				var virtualCam = CameraHandle.GetComponentInChildren<CinemachineCamera>(true);
 				virtualCam.gameObject.layer = cameraLayer;
+				virtualCam.OutputChannel = (OutputChannels)(1 << (LocalIndex +1 ));
+				thirdPersonCamera.OutputChannel = (OutputChannels)(1 << (LocalIndex + 1));
 
 				int thirdPersonLayer = cameraLayer + 1;
 				LayerTools.SetLayerRecursively(FirstPersonRoot, cameraLayer);
@@ -103,10 +106,16 @@ namespace SimpleFPS
 			}
 		}
 
-		public void DisableFPSCamera()
+		public void SwitchToThirdPersonCamera()
 		{
-			var virtualCam = CameraHandle.GetComponentInChildren<CinemachineVirtualCamera>(true);
+			var virtualCam = CameraHandle.GetComponentInChildren<CinemachineCamera>(true);
 			virtualCam.gameObject.SetActive(false);
+
+			thirdPersonCamera.gameObject.SetActive(true);
+
+			var screenManager = ScreenManager.Instance;
+			LayerTools.SetLayerRecursively(ThirdPersonRoot, screenManager.deadPlayerLayer);
+
 		}
 
 

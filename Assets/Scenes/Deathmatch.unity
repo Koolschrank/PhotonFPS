@@ -13265,9 +13265,13 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8564537597522240555, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: ChannelMask
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 8627377366302279234, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_CullingMask.m_Bits
-      value: 3439329495
+      value: 3439329431
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -35783,9 +35787,13 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8564537597522240555, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: ChannelMask
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8627377366302279234, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_CullingMask.m_Bits
-      value: 3036676311
+      value: 3036676247
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -35953,9 +35961,13 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8564537597522240555, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: ChannelMask
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 8627377366302279234, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_CullingMask.m_Bits
-      value: 3539992791
+      value: 3539992727
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -57553,9 +57565,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Camera_Player1
       objectReference: {fileID: 0}
+    - target: {fileID: 8564537597522240555, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
+      propertyPath: ChannelMask
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 8627377366302279234, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_CullingMask.m_Bits
-      value: 3565158615
+      value: 3565158551
       objectReference: {fileID: 0}
     - target: {fileID: 8627377366302279234, guid: b503903aff58b8d4f8f009d11e5dc779, type: 3}
       propertyPath: m_NormalizedViewPortRect.height
