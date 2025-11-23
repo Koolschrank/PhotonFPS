@@ -28,6 +28,7 @@ namespace SimpleFPS
 		public Animator Animator;
 		public HitboxRoot HitboxRoot;
 		public CinemachineCamera thirdPersonCamera;
+		public RagdollSpawner RagdollSpawner;
 
 		[Header("Setup")]
 		public float MoveSpeed = 6f;
@@ -106,6 +107,8 @@ namespace SimpleFPS
 			}
 		}
 
+		
+
 		public void SwitchToThirdPersonCamera()
 		{
 			var virtualCam = CameraHandle.GetComponentInChildren<CinemachineCamera>(true);
@@ -114,7 +117,7 @@ namespace SimpleFPS
 			thirdPersonCamera.gameObject.SetActive(true);
 
 			var screenManager = ScreenManager.Instance;
-			LayerTools.SetLayerRecursively(ThirdPersonRoot, screenManager.deadPlayerLayer);
+			LayerTools.SetLayerRecursively(ThirdPersonRoot, 0);//screenManager.deadPlayerLayer);
 
 		}
 
@@ -133,7 +136,7 @@ namespace SimpleFPS
 				KCC.SetColliderLayer(LayerMask.NameToLayer("Ignore Raycast"));
 				KCC.SetCollisionLayerMask(LayerMask.GetMask("Default"));
 				HitboxRoot.HitboxRootActive = false;
-				SetVisuals(false, true);
+				
 				return;
 			}
 
@@ -175,6 +178,20 @@ namespace SimpleFPS
 			}
 
 			_visibleJumpCount = _jumpCount;
+
+			if (!Health.IsAlive)
+			{
+				if (!RagdollSpawner.IsRagdollSpawned)
+				{
+					RagdollSpawner.bulletImpact = Health.ragdollBulletImpact;
+					RagdollSpawner.SpawnRagdoll();
+				}
+
+
+				SetVisuals(false, !RagdollSpawner.IsRagdollSpawned);
+			}
+
+
 		}
 
 		private void LateUpdate()

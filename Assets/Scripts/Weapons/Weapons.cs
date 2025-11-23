@@ -194,9 +194,11 @@ namespace SimpleFPS
 				}
 				if (_thirdPersonActive)
 				{
-
+					
 					var weaponTransform = _visibleWeapon.ThirdPersonVisual.gameObject.transform;
 					var weaponPivot = _visibleWeapon.ThirdPersonVisual.Pivot;
+
+					weaponTransform.SetParent(ThirdPersonSetup.WeaponHandle);
 					weaponTransform.rotation = ThirdPersonSetup.WeaponHandle.rotation * weaponPivot.localRotation;
 					weaponTransform.position = ThirdPersonSetup.WeaponHandle.position + weaponTransform.rotation * weaponPivot.localPosition;
 				}

@@ -1,6 +1,7 @@
 ﻿using Fusion;
 using Fusion.Sockets;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -68,10 +69,20 @@ namespace SimpleFPS
 
 			if (sources.Count > 1)
 			{
-				runner.GetSingleton<SceneObjects>().Gameplay.CallLocalPlayerSpawnRPC(new PlayerKey( runner.LocalPlayer, sources.Count - 1));
+				StartCoroutine(WaitForLocalPlayerThenCall());
 			}
 
 			Debug.Log($"[InputCollector] New InputSource joined → slot {src.playerIndex}");
+		}
+
+		private IEnumerator WaitForLocalPlayerThenCall()
+		{
+			while (runner.LocalPlayer == null)
+				yield return null;
+
+			runner.GetSingleton<SceneObjects>()
+				  .Gameplay
+				  .CallLocalPlayerSpawnRPC(new PlayerKey(runner.LocalPlayer, sources.Count - 1));
 		}
 
 		public void OnInput(NetworkRunner runner, NetworkInput networkInput)

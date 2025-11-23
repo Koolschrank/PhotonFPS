@@ -38,10 +38,13 @@ namespace SimpleFPS
 		[Networked]
 		private TickTimer _shildRegenTimer { get; set; }
 
+		[Networked]
+		public RagdollBulletImpact ragdollBulletImpact { get; private set; }
+
 		private int _visibleHitCount;
 		private SceneObjects _sceneObjects;
 
-		public bool ApplyDamage(PlayerKey instigator, float damage, Vector3 position, Vector3 direction, EWeaponType weaponType, bool isCritical)
+		public bool ApplyDamage(PlayerKey instigator, float damage, float damageForce, Vector3 position, Vector3 direction, EWeaponType weaponType, bool isCritical)
 		{
 			if (CurrentHealth <= 0f)
 				return false;
@@ -69,6 +72,15 @@ namespace SimpleFPS
 				var playerKey = new PlayerKey(Object.InputAuthority, Player.LocalIndex);
 				Player.SwitchToThirdPersonCamera();
 				_sceneObjects.Gameplay.PlayerKilled(instigator, playerKey, weaponType, isCritical);
+
+
+				ragdollBulletImpact = new RagdollBulletImpact(
+					position,
+					direction,
+					damageForce
+					);
+				
+					
 			}
 
 			// Store relative hit position.

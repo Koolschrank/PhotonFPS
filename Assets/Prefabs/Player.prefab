@@ -1195,6 +1195,7 @@ GameObject:
   - component: {fileID: 5744676234014132664}
   - component: {fileID: 7259423219028248817}
   - component: {fileID: 2179245550147592387}
+  - component: {fileID: 210268532589964613}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -1250,6 +1251,7 @@ MonoBehaviour:
   - {fileID: 5374299559181985757}
   - {fileID: 5744676234014132664}
   - {fileID: 7259423219028248817}
+  - {fileID: 210268532589964613}
   - {fileID: 5765402983727100926}
   - {fileID: 8756917485358730552}
   - {fileID: 199025030715070050}
@@ -1300,6 +1302,7 @@ MonoBehaviour:
   Animator: {fileID: 5984569209288009230}
   HitboxRoot: {fileID: 5374299559181985757}
   thirdPersonCamera: {fileID: 8831368008922918408}
+  RagdollSpawner: {fileID: 210268532589964613}
   MoveSpeed: 5.5
   JumpForce: 6.5
   JumpSound: {fileID: 5761633887109336059}
@@ -1479,6 +1482,22 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: -3, y: 0, z: -10}
+--- !u!114 &210268532589964613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7812586951838351475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 969d14f542eb08642bce71af51c0e343, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerAnimator: {fileID: 5984569209288009230}
+  playerVisualRoot: {fileID: 1055682366495237838}
+  ragdollPrefab: {fileID: 4226250705006454031, guid: a5a6d8d2d23a40642a00b53268c16887, type: 3}
+  _RagdollInstance: {fileID: 0}
 --- !u!1 &8169286849145927954
 GameObject:
   m_ObjectHideFlags: 0
@@ -1957,6 +1976,10 @@ PrefabInstance:
     - target: {fileID: 1525218576529477831, guid: 889d24f8fc349cf45b463fb9b13b0143, type: 3}
       propertyPath: m_Layer
       value: 31
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525218576529477831, guid: 889d24f8fc349cf45b463fb9b13b0143, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1541317550249371662, guid: 889d24f8fc349cf45b463fb9b13b0143, type: 3}
       propertyPath: m_Layer

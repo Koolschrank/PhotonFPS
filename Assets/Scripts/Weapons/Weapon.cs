@@ -27,6 +27,7 @@ namespace SimpleFPS
 		[Header("Fire Setup")]
 		public bool        IsAutomatic = true;
 		public float       Damage = 10f;
+		public float       DamageForce = 100f;
 		public int         FireRate = 100;
 		[Range(1, 20)]
 		public int         ProjectilesPerShot = 1;
@@ -389,7 +390,7 @@ namespace SimpleFPS
 				damage *= 2f;
 			}
 
-			if (enemyHealth.ApplyDamage(OwnerPlayerKey, damage, position, direction, Type, isCriticalHit) == false)
+			if (enemyHealth.ApplyDamage(OwnerPlayerKey, damage, DamageForce, position, direction, Type, isCriticalHit) == false)
 				return;
 
 			if (HasInputAuthority && Runner.IsForward)

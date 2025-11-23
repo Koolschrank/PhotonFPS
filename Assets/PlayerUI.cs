@@ -92,7 +92,9 @@ namespace SimpleFPS
 
 			GameplayView.gameObject.SetActive(gameplayActive);
 			GameOverView.gameObject.SetActive(gameplayActive == false);
-			
+
+			if (_sceneObjects.Device == null) return;
+
 			var playerObject = _sceneObjects.Device.GetLocalPlayerObjectViaIndex(localPlayerIndex);
 			if (playerObject != null)
 			{

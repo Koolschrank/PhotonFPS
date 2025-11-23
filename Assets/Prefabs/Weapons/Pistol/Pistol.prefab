@@ -178,7 +178,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 1
   IsAutomatic: 0
-  Damage: 20
+  Damage: 40
+  DamageForce: 130
   FireRate: 375
   ProjectilesPerShot: 1
   Dispersion: 0.5
