@@ -6,6 +6,8 @@ public class RagdollController : MonoBehaviour
 
 	public Transform[] visuals;
 
+	public Transform cameraFollowTarget;
+
 	void Awake()
 	{
 		ragdollBones = GetComponentsInChildren<Rigidbody>();
@@ -21,6 +23,10 @@ public class RagdollController : MonoBehaviour
 		}
 	}
 	
+	public void CancelRagdoll()
+	{
+		SetRagdoll(false);
+	}
 
 	public void StartRagdoll()
 	{

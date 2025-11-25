@@ -715,6 +715,7 @@ MonoBehaviour:
   - {fileID: 186021494855691424}
   - {fileID: 3166550156706764550}
   - {fileID: 6051760709438494880}
+  cameraFollowTarget: {fileID: 658409445618256852}
 --- !u!114 &4226250705006454031
 MonoBehaviour:
   m_ObjectHideFlags: 0

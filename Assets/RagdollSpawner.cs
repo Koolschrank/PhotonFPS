@@ -27,6 +27,15 @@ public class RagdollSpawner : NetworkBehaviour
 		}
 	}
 
+	public void CancelRagdoll()
+		{
+		if (RagdollInstance == null)
+			return;
+		var ragdoll = RagdollInstance.GetComponent<RagdollController>();
+		ragdoll.CancelRagdoll();
+		IsRagdollSpawned = false;
+	}
+
 	public void SpawnRagdoll()
 	{
 		if (RagdollInstance == null)

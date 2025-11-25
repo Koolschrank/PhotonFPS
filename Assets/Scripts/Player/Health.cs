@@ -70,7 +70,6 @@ namespace SimpleFPS
 				CurrentHealth = 0f;
 
 				var playerKey = new PlayerKey(Object.InputAuthority, Player.LocalIndex);
-				Player.SwitchToThirdPersonCamera();
 				_sceneObjects.Gameplay.PlayerKilled(instigator, playerKey, weaponType, isCritical);
 
 

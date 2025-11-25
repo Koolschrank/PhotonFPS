@@ -116,6 +116,10 @@ namespace SimpleFPS
 
 			thirdPersonCamera.gameObject.SetActive(true);
 
+			var ragdoll = RagdollSpawner.RagdollInstance.GetComponent<RagdollController>().cameraFollowTarget;
+
+			thirdPersonCamera.GetComponent<CinemachineCamera>().LookAt = ragdoll;
+
 			var screenManager = ScreenManager.Instance;
 			LayerTools.SetLayerRecursively(ThirdPersonRoot, 0);//screenManager.deadPlayerLayer);
 
@@ -162,7 +166,6 @@ namespace SimpleFPS
 			var moveVel = GetAnimationMoveVelocity();
 
 			Animator.SetFloat(AnimatorId.LocomotionTime, Time.time * 2f);
-			Animator.SetBool(AnimatorId.IsAlive, Health.IsAlive);
 			Animator.SetBool(AnimatorId.IsGrounded, KCC.IsGrounded);
 			Animator.SetBool(AnimatorId.IsReloading, Weapons.CurrentWeapon.IsReloading);
 			Animator.SetFloat(AnimatorId.MoveX, moveVel.x, 0.05f, Time.deltaTime);
@@ -185,10 +188,24 @@ namespace SimpleFPS
 				{
 					RagdollSpawner.bulletImpact = Health.ragdollBulletImpact;
 					RagdollSpawner.SpawnRagdoll();
+					SetVisuals(false, !RagdollSpawner.IsRagdollSpawned);
+					SwitchToThirdPersonCamera();
 				}
 
 
-				SetVisuals(false, !RagdollSpawner.IsRagdollSpawned);
+				
+			}
+			else
+			{
+
+				// resets to alive in case player died but host disagreed with death
+				if (RagdollSpawner.IsRagdollSpawned)
+				{
+					RagdollSpawner.bulletImpact = Health.ragdollBulletImpact;
+					RagdollSpawner.CancelRagdoll();
+					SetVisuals(HasInputAuthority, true);
+					// TODO: switch to first person camera still needed
+				}
 			}
 
 
