@@ -23,10 +23,17 @@ namespace SimpleFPS
 		[HideInInspector]
 		public Weapon[] AllWeapons;
 
+		[HideInInspector]
+		public Granade[] AllGranades;
+
+
 		public bool IsSwitching => _switchTimer.ExpiredOrNotRunning(Runner) == false;
 
 		[Networked, HideInInspector]
 		public Weapon CurrentWeapon { get; set; }
+
+		[Networked, HideInInspector]
+		public Granade CurrentGranade { get; set; }
 
 		[Networked]
 		private TickTimer _switchTimer { get; set; }
@@ -77,6 +84,15 @@ namespace SimpleFPS
 			//	// to prevent clipping through geometry.
 			//	AllWeapons[i].gameObject.SetLayer(_activeSetup.WeaponLayer, true);
 			//}
+		}
+
+		public void ThrowGranade()
+		{
+			if (CurrentGranade == null || IsSwitching)
+				return;
+
+			if (CurrentGranade.Throw(FireTransform.position, FireTransform.forward) == false)
+				return;
 		}
 
 		public void Fire(bool justPressed)
@@ -175,7 +191,7 @@ namespace SimpleFPS
 			// All weapons are already present inside Player prefab.
 			// This is the simplest solution when only few weapons are available in the game.
 			AllWeapons = GetComponentsInChildren<Weapon>();
-
+			AllGranades = GetComponentsInChildren<Granade>();
 		}
 
 		private void LateUpdate()
@@ -213,6 +229,8 @@ namespace SimpleFPS
 			{
 				CurrentWeapon = AllWeapons[0];
 				CurrentWeapon.IsCollected = true;
+
+				CurrentGranade = AllGranades[0];
 			}
 		}
 

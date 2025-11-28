@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 230964205106679574}
   - component: {fileID: 8165141269578965672}
   - component: {fileID: 6808256441503993390}
+  - component: {fileID: 1118219810922203330}
   m_Layer: 0
   m_Name: NetworkRunner
   m_TagString: Untagged
@@ -27,13 +28,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1781180110049439631}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3095207314023402545
 MonoBehaviour:
@@ -107,6 +108,9 @@ MonoBehaviour:
   OnReliableData:
     m_PersistentCalls:
       m_Calls: []
+  OnReliableProgress:
+    m_PersistentCalls:
+      m_Calls: []
   OnObjectEnterAOI:
     m_PersistentCalls:
       m_Calls: []
@@ -139,3 +143,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7aee3749b104db88b4339b3346607a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1118219810922203330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1781180110049439631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b5a1ff9dee264bfd829a39e6542dcbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _physicsAuthority: 2
+  _physicsTiming: 3
+  ClientPhysicsSimulation: 3
+  DeltaTimeMultiplier: 1
+  SetUnityFixedTimestep: 0

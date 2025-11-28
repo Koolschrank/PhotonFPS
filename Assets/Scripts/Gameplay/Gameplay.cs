@@ -81,20 +81,16 @@ namespace SimpleFPS
 			}
 		}
 
-		private void FixedUpdate()
-		{
-			Physics.Simulate(Time.fixedDeltaTime); // everybody simulates their own local physics for non-networked objects
-		}
 
 		// Called every fixed tick
 		public override void FixedUpdateNetwork()
 		{
 			
+
 			if (HasStateAuthority == false)
 				return;
 
 			
-
 			// Handle new/disconnected players automatically
 			PlayerManager.UpdatePlayerConnections(Runner, SpawnPlayer, DespawnPlayer);
 
@@ -152,6 +148,7 @@ namespace SimpleFPS
 		
 		private void SpawnPlayer(PlayerRef playerRef)
 		{
+			Debug.Log($"SpawnPlayer called for {playerRef}");
 			SpawnPlayerForLocalIndex(playerRef, 0);
 		}
 

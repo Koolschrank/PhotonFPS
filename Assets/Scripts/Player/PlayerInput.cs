@@ -19,7 +19,7 @@ namespace SimpleFPS
 		SwitchWeapon,
 		Crouch,
 		Melee,
-		Grenade,
+		Granade,
 		Aim,
 
 

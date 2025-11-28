@@ -21,7 +21,7 @@ namespace SimpleFPS
 		public void OnShoot(InputAction.CallbackContext ctx) => SetButton(ctx, EInputButton.Fire);
 		public void OnAim(InputAction.CallbackContext ctx) => SetButton(ctx, EInputButton.Aim);
 		public void OnMelee(InputAction.CallbackContext ctx) => SetButton(ctx, EInputButton.Melee);
-		public void OnGrenade(InputAction.CallbackContext ctx) => SetButton(ctx, EInputButton.Grenade);
+		public void OnGrenade(InputAction.CallbackContext ctx) => SetButton(ctx, EInputButton.Granade);
 		public void OnReload(InputAction.CallbackContext ctx) => SetButton(ctx, EInputButton.Reload);
 		public void OnSwitchWeapon(InputAction.CallbackContext ctx) => SetButton(ctx, EInputButton.SwitchWeapon);
 		public void OnCrouch(InputAction.CallbackContext ctx) => SetButton(ctx, EInputButton.Crouch);

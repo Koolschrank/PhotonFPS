@@ -46,14 +46,16 @@ public class RagdollSpawner : NetworkBehaviour
 
 		var ragdoll = RagdollInstance.GetComponent<RagdollController>();
 		ragdoll.StartRagdoll();
-		CopyPose(playerAnimator, ragdoll);
+
+		ragdoll.CopyPose(playerVisualRoot.transform);
+		
 
 		if (bulletImpact.force != 0)
 		{
 			var hitRigidbody = ragdoll.GetClosesRigidbody(bulletImpact.Position);
 			if (hitRigidbody != null)
 			{
-				hitRigidbody.AddForceAtPosition(bulletImpact.Normal * bulletImpact.force, bulletImpact.Position, ForceMode.Impulse);
+				hitRigidbody.Rigidbody.AddForceAtPosition(bulletImpact.Normal * bulletImpact.force, bulletImpact.Position, ForceMode.Impulse);
 			}
 		}
 	}
@@ -71,28 +73,7 @@ public class RagdollSpawner : NetworkBehaviour
 		RagdollInstance = rag; // Networked reference synced to clients
 	}
 
-	/// <summary>
-	/// Matches ragdoll bones to current player skeleton
-	/// </summary>
-	private void CopyPose(Animator source, RagdollController ragdoll)
-	{
-		Debug.Log("Copying pose to ragdoll");
-		Transform[] sourceBones = source.GetComponentsInChildren<Transform>();
-		Transform[] ragdollBones = ragdoll.GetComponentsInChildren<Transform>();
-
-		foreach (var rb in ragdollBones)
-		{
-			foreach (var b in sourceBones)
-			{
-				if (b.name == rb.name)
-				{
-					rb.position = b.position;
-					rb.rotation = b.rotation;
-					break;
-				}
-			}
-		}
-	}
+	
 }
 
 

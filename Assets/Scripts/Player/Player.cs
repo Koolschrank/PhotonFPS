@@ -242,8 +242,13 @@ namespace SimpleFPS
 
 			if (KCC.HasJumped) _jumpCount++;
 
-			// Weapons
-			if (input.Buttons.IsSet(EInputButton.Fire))
+			if (input.Buttons.WasPressed(_previousButtons, EInputButton.Granade))
+			{
+				Debug.Log("Throw Granade");
+				Weapons.ThrowGranade();
+			}
+				// Weapons
+				if (input.Buttons.IsSet(EInputButton.Fire))
 			{
 				bool justPressed = input.Buttons.WasPressed(_previousButtons, EInputButton.Fire);
 				Weapons.Fire(justPressed);
