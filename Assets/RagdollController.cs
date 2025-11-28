@@ -1,26 +1,24 @@
 using Fusion;
 using Fusion.Addons.Physics;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class RagdollController : NetworkBehaviour
 {
-	private NetworkRigidbody3D[] ragdollBones;
+	private Rigidbody[] ragdollBones;
 
 	public Transform[] visuals;
 
 	public Transform cameraFollowTarget;
 
-	public NetworkObject root;
+	public Transform root;
 
 	void Awake()
 	{
-		ragdollBones = GetComponentsInChildren<NetworkRigidbody3D>();
-
-		
-
-		this.gameObject.SetActive(false);
+		ragdollBones = GetComponentsInChildren<Rigidbody>();
+		CancelRagdoll();
 
 	}
 
@@ -34,18 +32,29 @@ public class RagdollController : NetworkBehaviour
 	
 	public void CancelRagdoll()
 	{
-		this.gameObject.SetActive(false);
+		SetVisuals(false);
+		foreach (var rb in ragdollBones)
+		{
+			rb.isKinematic = true;
+			rb.useGravity = false;
+		}
 	}
 
 	public void StartRagdoll()
 	{
 		if (ragdollBones.Length == 0)
 		{
-			ragdollBones = GetComponentsInChildren<NetworkRigidbody3D>();
+			ragdollBones = GetComponentsInChildren<Rigidbody>();
 			Debug.Log("Ragdoll bones were not initialized in Awake, initializing in StartRagdoll");
 		}
+		foreach (var rb in ragdollBones)
+		{
+			rb.isKinematic = false;
+			rb.useGravity = true;
+		}
+		SetVisuals(true);
 
-		//SceneManager.MoveGameObjectToScene(gameObject, LocalPhysicsManager.LocalScene);
+		SceneManager.MoveGameObjectToScene(gameObject, LocalPhysicsManager.LocalScene);
 		this.gameObject.SetActive(true);
 	}
 
@@ -53,62 +62,33 @@ public class RagdollController : NetworkBehaviour
 	public void CopyPose(Transform rootToCopy)
 	{
 
-		this.GetComponent<NetworkTransform>().Teleport(rootToCopy.position, rootToCopy.rotation);
-
-
 		// Build lookup for source bones by name (much faster)
 		Transform[] sourceBones = rootToCopy.GetComponentsInChildren<Transform>();
-		Dictionary<string, Transform> sourceLookup = new Dictionary<string, Transform>();
-		foreach (var sb in sourceBones)
-			sourceLookup[sb.name] = sb;
+		Transform[] ragdollBones = root.GetComponentsInChildren<Transform>();
 
-		Transform[] ragdollBones = GetComponentsInChildren<Transform>();
-
-		// First pass: freeze & disable collisions
-		foreach (var bone in ragdollBones)
+		foreach (Transform ragdollBone in ragdollBones)
 		{
-			var rb3D = bone.GetComponent<NetworkRigidbody3D>();
-			if (rb3D == null) continue;
-
-			rb3D.RBIsKinematic = true;
-			rb3D.Rigidbody.detectCollisions = false;
-			rb3D.Rigidbody.linearVelocity = Vector3.zero;
-			rb3D.Rigidbody.angularVelocity = Vector3.zero;
-		}
-
-		// Second pass: copy pose
-		foreach (var ragdollBone in ragdollBones)
-		{
-			var rb3D = ragdollBone.GetComponent<NetworkRigidbody3D>();
-			if (rb3D == null) continue;
-
-			if (sourceLookup.TryGetValue(ragdollBone.name, out Transform sourceBone))
+			foreach (Transform sourceBone in sourceBones)
 			{
-				// Safe: teleport while kinematic
-				rb3D.Teleport(sourceBone.position, sourceBone.rotation);
+				if (ragdollBone.name == sourceBone.name)
+				{
+					ragdollBone.position = sourceBone.position;
+					ragdollBone.rotation = sourceBone.rotation;
+					break;
+				}
 			}
-		}
-
-		// Third pass: re-enable physics
-		foreach (var bone in ragdollBones)
-		{
-			var rb3D = bone.GetComponent<NetworkRigidbody3D>();
-			if (rb3D == null) continue;
-
-			rb3D.Rigidbody.detectCollisions = true;
-			rb3D.RBIsKinematic = false;
 		}
 	}
 
 
 
-	public NetworkRigidbody3D GetClosesRigidbody(Vector3 position)
+	public Rigidbody GetClosesRigidbody(Vector3 position)
 	{
-		NetworkRigidbody3D closest = null;
+		Rigidbody closest = null;
 		float closestDistance = float.MaxValue;
-		foreach (NetworkRigidbody3D rb in ragdollBones)
+		foreach (Rigidbody rb in ragdollBones)
 		{
-			float distance = Vector3.Distance(rb.RBPosition, position);
+			float distance = Vector3.Distance(rb.transform.position, position);
 			if (distance < closestDistance)
 			{
 				closest = rb;

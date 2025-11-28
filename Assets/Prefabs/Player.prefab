@@ -1580,7 +1580,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerAnimator: {fileID: 5984569209288009230}
-  playerVisualRoot: {fileID: 4244036627714505572}
+  playerVisualRoot: {fileID: 1055682366495237838}
   ragdollPrefab: {fileID: 4226250705006454031, guid: a5a6d8d2d23a40642a00b53268c16887, type: 3}
   _RagdollInstance: {fileID: 0}
   IsRagdollSpawned: 0
@@ -2471,11 +2471,6 @@ GameObject:
 --- !u!4 &2015599327050858759 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 32927464118843150, guid: 889d24f8fc349cf45b463fb9b13b0143, type: 3}
-  m_PrefabInstance: {fileID: 1985000783179576841}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &4244036627714505572 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2407731872938397037, guid: 889d24f8fc349cf45b463fb9b13b0143, type: 3}
   m_PrefabInstance: {fileID: 1985000783179576841}
   m_PrefabAsset: {fileID: 0}
 --- !u!95 &5984569209288009230 stripped

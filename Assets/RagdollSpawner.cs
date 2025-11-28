@@ -55,7 +55,7 @@ public class RagdollSpawner : NetworkBehaviour
 			var hitRigidbody = ragdoll.GetClosesRigidbody(bulletImpact.Position);
 			if (hitRigidbody != null)
 			{
-				hitRigidbody.Rigidbody.AddForceAtPosition(bulletImpact.Normal * bulletImpact.force, bulletImpact.Position, ForceMode.Impulse);
+				hitRigidbody.AddForceAtPosition(bulletImpact.Normal * bulletImpact.force, bulletImpact.Position, ForceMode.Impulse);
 			}
 		}
 	}
