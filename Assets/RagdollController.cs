@@ -1,5 +1,6 @@
 using Fusion;
 using Fusion.Addons.Physics;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -48,28 +49,57 @@ public class RagdollController : NetworkBehaviour
 		this.gameObject.SetActive(true);
 	}
 
-	
+
 	public void CopyPose(Transform rootToCopy)
 	{
+
+		this.GetComponent<NetworkTransform>().Teleport(rootToCopy.position, rootToCopy.rotation);
+
+
+		// Build lookup for source bones by name (much faster)
 		Transform[] sourceBones = rootToCopy.GetComponentsInChildren<Transform>();
-		Transform[] ragdollBonesTransforms = GetComponentsInChildren<Transform>();
-		
-		foreach (var ragdollBone in ragdollBonesTransforms)
+		Dictionary<string, Transform> sourceLookup = new Dictionary<string, Transform>();
+		foreach (var sb in sourceBones)
+			sourceLookup[sb.name] = sb;
+
+		Transform[] ragdollBones = GetComponentsInChildren<Transform>();
+
+		// First pass: freeze & disable collisions
+		foreach (var bone in ragdollBones)
 		{
-			foreach (var sourceBone in sourceBones)
+			var rb3D = bone.GetComponent<NetworkRigidbody3D>();
+			if (rb3D == null) continue;
+
+			rb3D.RBIsKinematic = true;
+			rb3D.Rigidbody.detectCollisions = false;
+			rb3D.Rigidbody.linearVelocity = Vector3.zero;
+			rb3D.Rigidbody.angularVelocity = Vector3.zero;
+		}
+
+		// Second pass: copy pose
+		foreach (var ragdollBone in ragdollBones)
+		{
+			var rb3D = ragdollBone.GetComponent<NetworkRigidbody3D>();
+			if (rb3D == null) continue;
+
+			if (sourceLookup.TryGetValue(ragdollBone.name, out Transform sourceBone))
 			{
-				NetworkRigidbody3D rigidbody3D = ragdollBone.GetComponent<NetworkRigidbody3D>();
-				if (rigidbody3D !=  null &&ragdollBone.name == sourceBone.name)
-				{
-					rigidbody3D.RBIsKinematic = true;
-					rigidbody3D.Teleport (sourceBone.position, sourceBone.rotation);
-					rigidbody3D.RBIsKinematic = false;
-					break;
-				}
+				// Safe: teleport while kinematic
+				rb3D.Teleport(sourceBone.position, sourceBone.rotation);
 			}
 		}
 
+		// Third pass: re-enable physics
+		foreach (var bone in ragdollBones)
+		{
+			var rb3D = bone.GetComponent<NetworkRigidbody3D>();
+			if (rb3D == null) continue;
+
+			rb3D.Rigidbody.detectCollisions = true;
+			rb3D.RBIsKinematic = false;
+		}
 	}
+
 
 
 	public NetworkRigidbody3D GetClosesRigidbody(Vector3 position)
