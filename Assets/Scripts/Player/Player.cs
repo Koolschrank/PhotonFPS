@@ -242,27 +242,9 @@ namespace SimpleFPS
 
 			if (KCC.HasJumped) _jumpCount++;
 
-			if (input.Buttons.WasPressed(_previousButtons, EInputButton.Granade))
-			{
-				Debug.Log("Throw Granade");
-				Weapons.ThrowGranade();
-			}
-				// Weapons
-				if (input.Buttons.IsSet(EInputButton.Fire))
-			{
-				bool justPressed = input.Buttons.WasPressed(_previousButtons, EInputButton.Fire);
-				Weapons.Fire(justPressed);
-				Health.StopImmortality();
-			}
-			else if (input.Buttons.IsSet(EInputButton.Reload))
-				Weapons.Reload();
+			ProcessWeaponInput(input);
 
-			if (input.Buttons.WasPressed(_previousButtons, EInputButton.Pistol))
-				Weapons.SwitchWeapon(EWeaponType.Pistol);
-			else if (input.Buttons.WasPressed(_previousButtons, EInputButton.Rifle))
-				Weapons.SwitchWeapon(EWeaponType.Rifle);
-			else if (input.Buttons.WasPressed(_previousButtons, EInputButton.Shotgun))
-				Weapons.SwitchWeapon(EWeaponType.Shotgun);
+			
 
 			if (input.Buttons.WasPressed(_previousButtons, EInputButton.Spray) && HasStateAuthority)
 			{
@@ -275,6 +257,11 @@ namespace SimpleFPS
 			}
 
 			_previousButtons = input.Buttons;
+		}
+
+		public void ProcessWeaponInput(NetworkedInputPlayer input)
+		{
+			
 		}
 
 		private void MovePlayer(Vector3 desiredMoveVelocity = default, float jumpImpulse = 0f)

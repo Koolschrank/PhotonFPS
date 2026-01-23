@@ -13,9 +13,10 @@ namespace SimpleFPS
 		public TextMeshProUGUI RemainingAmmo;
 	    public Image           AmmoProgress;
 	    public GameObject      NoAmmoGroup;
-	    public CanvasGroup[]   WeaponThumbnails;
+	    public CanvasGroup   WeaponThumbnail;
+		public CanvasGroup BackWeaponThumbnail;
 
-	    private Weapon _weapon;
+		private Weapon _weapon;
 	    private int _lastClipAmmo;
 	    private int _lastRemainingAmmo;
 
@@ -23,28 +24,27 @@ namespace SimpleFPS
 	    {
 		    SetWeapon(weapons.CurrentWeapon);
 
-		    // Update weapon thumbnails.
-		    for (int i = 0; i < weapons.AllWeapons.Length; i++)
-		    {
-			    var weapon = weapons.AllWeapons[i];
-			    WeaponThumbnails[i].alpha = weapon.IsCollected && weapon.HasAmmo ? 1f : 0.2f;
-		    }
+			bool hasWeaponInHand = weapons.CurrentWeapon != null;
+			WeaponThumbnail.alpha = hasWeaponInHand ? 1f : 0f;
+			bool hasWeaponInBack = weapons.GetWeaponInBack() != null;
+			BackWeaponThumbnail.alpha = hasWeaponInBack ? 1f : 0f;
 
-		    if (_weapon == null)
+
+			if (_weapon == null)
 			    return;
 
 		    UpdateAmmoProgress();
 
 		    // Modify UI text only when value changed.
-		    if (_weapon.ClipAmmo == _lastClipAmmo && _weapon.RemainingAmmo == _lastRemainingAmmo)
+		    if (_weapon.AmmoInMagazin == _lastClipAmmo && _weapon.RemainingAmmo == _lastRemainingAmmo)
 			    return;
 
-		    ClipAmmo.text = _weapon.ClipAmmo.ToString();
+		    ClipAmmo.text = _weapon.AmmoInMagazin.ToString();
 		    RemainingAmmo.text = _weapon.RemainingAmmo < 1000 ? _weapon.RemainingAmmo.ToString() : "-";
 
-		    NoAmmoGroup.SetActive(_weapon.ClipAmmo == 0 && _weapon.RemainingAmmo == 0);
+		    NoAmmoGroup.SetActive(_weapon.AmmoInMagazin == 0 && _weapon.RemainingAmmo == 0);
 
-		    _lastClipAmmo = _weapon.ClipAmmo;
+		    _lastClipAmmo = _weapon.AmmoInMagazin;
 		    _lastRemainingAmmo = _weapon.RemainingAmmo;
 	    }
 
@@ -72,7 +72,7 @@ namespace SimpleFPS
 		    }
 		    else
 		    {
-			    AmmoProgress.fillAmount = _weapon.ClipAmmo / (float)_weapon.MaxClipAmmo;
+			    AmmoProgress.fillAmount = _weapon.AmmoInMagazin / (float)_weapon.MaxClipAmmo;
 		    }
 	    }
 	}

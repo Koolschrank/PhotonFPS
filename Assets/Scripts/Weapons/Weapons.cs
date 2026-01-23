@@ -1,9 +1,19 @@
 using System;
 using Fusion;
+using NUnit.Framework;
 using UnityEngine;
 
 namespace SimpleFPS
 {
+	public struct WeaponState : INetworkStruct
+	{
+		public EWeaponType WeaponType;
+		public int AmmoInMag;
+		public int AmmoReserve;
+		public float Util;       // meaning depends on weapon like zoom level for sniper, charge level for charge weapon etc.
+	}
+
+
 	/// <summary>
 	/// Weapons component hold references to all player weapons
 	/// and allows for weapon actions such as Fire or Reload.
@@ -13,53 +23,122 @@ namespace SimpleFPS
 		[Header("Setup")]
 		public Player player;
 		public Transform FireTransform;
+		public Transform WeaponParentObject;
 		public Setup FirstPersonSetup;
 		public Setup ThirdPersonSetup;
 		public float WeaponSwitchTime = 1f;
+		
 
 		[Header("Sounds")]
 		public AudioSource SwitchSound;
 
-		[HideInInspector]
-		public Weapon[] AllWeapons;
+		[Networked, Capacity(2)]
+		public NetworkArray<WeaponState> WeaponsOwned { get; }
+
+		[Networked]
+		public int ActiveWeaponSlot { get; set; }
+
+		[Networked] private TickTimer _fireCooldown { get; set; }
+		[Networked] private TickTimer _reloadCooldown { get; set; }
+		[Networked] private TickTimer _switchTimer { get; set; }
+		[Networked] private TickTimer _granadeThrowTimer { get; set; }
+		[Networked] private TickTimer _inMeleeTimer { get; set; }
+
+		public bool InFireCooldown => _fireCooldown.ExpiredOrNotRunning(Runner) == false;
+		public float? FireCooldownRemaining => _fireCooldown.RemainingTime(Runner);
+		public bool InReloadCooldown => _reloadCooldown.ExpiredOrNotRunning(Runner) == false;
+		public bool IsSwitching => _switchTimer.ExpiredOrNotRunning(Runner) == false;
+		public bool InGranadeThrowCooldown => _granadeThrowTimer.ExpiredOrNotRunning(Runner) == false;
+		public bool InMeleeCooldown => _inMeleeTimer.ExpiredOrNotRunning(Runner) == false;
+
+		public bool _firstPersonActive;
+		public bool _thirdPersonActive;
 
 		[HideInInspector]
 		public Granade[] AllGranades;
 
+		[Networked, HideInInspector]
+		public Granade CurrentGranade { get; set; }
 
-		public bool IsSwitching => _switchTimer.ExpiredOrNotRunning(Runner) == false;
+
+		public Weapon[] weaponObjectsOwned { get; } = new Weapon[2];
+
+
+		/*
 
 		[Networked, HideInInspector]
 		public Weapon CurrentWeapon { get; set; }
 
-		[Networked, HideInInspector]
-		public Granade CurrentGranade { get; set; }
+		[Networked, Capacity(2)]
+		public NetworkArray<NetworkObject> WeaponsInBack { get; }
 
-		[Networked]
-		private TickTimer _switchTimer { get; set; }
+		
+
 		[Networked]
 		private Weapon _pendingWeapon { get; set; }
 
-		private Weapon _visibleWeapon;
-		
-		public bool _firstPersonActive;
-		public bool _thirdPersonActive;
+		private Weapon _visibleWeapon;*/
+
+		public void ProcessInput(NetworkButtons _previousButtons, NetworkedInputPlayer input)
+		{
+			bool throwGranadePressed = input.Buttons.WasPressed(_previousButtons, EInputButton.Granade);
+			bool firePressed = input.Buttons.IsSet(EInputButton.Fire);
+			bool fireJustPressed = input.Buttons.WasPressed(_previousButtons, EInputButton.Fire);
+			bool reloadPressed = input.Buttons.IsSet(EInputButton.Reload);
+			bool meleePressed = input.Buttons.WasPressed(_previousButtons, EInputButton.Melee);
+			bool switchWeaponPressed = input.Buttons.WasPressed(_previousButtons, EInputButton.SwitchWeapon);
+
+			if (IsSwitching) return;
+			if (InGranadeThrowCooldown) return;
+			if (InMeleeCooldown) return;
+
+			if (meleePressed)
+			{
+				// cancel reloading if releoading
+				// perform melee attack
+			}
+			else if (throwGranadePressed)
+			{
+				// cancel reloading if releoading
+				ThrowGranade();
+			}
+			else if (switchWeaponPressed)
+			{
+				// cancel reloading if releoading
+				SwitchWeapon();
+			}
+			else if (reloadPressed)
+			{
+				Reload();
+			}
+			else if (input.Buttons.IsSet(EInputButton.Fire))
+			{
+				bool justPressed = input.Buttons.WasPressed(_previousButtons, EInputButton.Fire);
+				Fire(justPressed);
+				//Health.StopImmortality();
+			}
+		}
+
+
 
 		public void SetFirstPersonLayer(int layer)
 		{
+			
+
 			FirstPersonSetup.WeaponLayer = layer;
-			if (_visibleWeapon != null&& _visibleWeapon.firstPersonVisible)
+
+			if (weaponObjectsOwned[ActiveWeaponSlot] != null && weaponObjectsOwned[ActiveWeaponSlot].firstPersonVisible)
 			{
-				LayerTools.SetLayerRecursively(_visibleWeapon.FirstPersonVisual.gameObject, layer);
+				LayerTools.SetLayerRecursively(weaponObjectsOwned[ActiveWeaponSlot].FirstPersonVisual.gameObject, layer);
 			}
 		}
 
 		public void SetThirdPersonLayer(int layer)
 		{
 			ThirdPersonSetup.WeaponLayer = layer;
-			if (_visibleWeapon != null && _visibleWeapon.thirdPersonVisible)
+			if (weaponObjectsOwned[ActiveWeaponSlot] != null && weaponObjectsOwned[ActiveWeaponSlot].thirdPersonVisible)
 			{
-				LayerTools.SetLayerRecursively(_visibleWeapon.ThirdPersonVisual.gameObject, layer);
+				LayerTools.SetLayerRecursively(weaponObjectsOwned[ActiveWeaponSlot].ThirdPersonVisual.gameObject, layer);
 			}
 		}
 
@@ -97,7 +176,7 @@ namespace SimpleFPS
 
 		public void Fire(bool justPressed)
 		{
-			if (CurrentWeapon == null || IsSwitching)
+			if (ActiveWeaponSlot < 0 || ActiveWeaponSlot >= WeaponsOwned.Length || WeaponsOwned[ActiveWeaponSlot].WeaponType == 0)
 				return;
 
 			if (CurrentWeapon.Fire(FireTransform.position, FireTransform.forward, justPressed) == false)
@@ -120,9 +199,18 @@ namespace SimpleFPS
 			CurrentWeapon.Reload();
 		}
 
-		public void SwitchWeapon(EWeaponType weaponType)
+		public void DropWeapon()
 		{
-			var newWeapon = GetWeapon(weaponType);
+			if (CurrentWeapon == null || IsSwitching)
+				return;
+
+			// For simplicity just remove current weapon	
+			CurrentWeapon = null;
+		}
+
+		public void SwitchWeapon()
+		{
+			var newWeapon = GetWeaponInBack();
 
 			if (newWeapon == null || newWeapon.IsCollected == false)
 				return;
@@ -149,39 +237,47 @@ namespace SimpleFPS
 			}
 		}
 
-		public bool PickupWeapon(EWeaponType weaponType)
+		public void PickupWeapon(EWeaponType weaponType, int ammoInMagazin, int ammoInReserve)
 		{
-			if (CurrentWeapon.IsReloading)
-				return false;
-
-			var weapon = GetWeapon(weaponType);
-			if (weapon == null)
-				return false;
-
-			if (weapon.IsCollected)
+			// create weapon object 
+			var weaponData = WeaponDatabase.weaponList.GetWeaponData(weaponType);
+			var weaponObject = Runner.Spawn(
+				weaponData.weaponPrefab,
+				WeaponParentObject.position,
+				WeaponParentObject.rotation,
+				player.Object.InputAuthority,
+				onBeforeSpawned: (runner, newObj) =>
+				{
+					if (newObj.TryGetComponent(out Weapon w))
+					{
+						w.AmmoInMagazin = ammoInMagazin;
+						w.RemainingAmmo = ammoInReserve;
+					}
+				});
+			// check if back weapon slot is free
+			// - if yes: put new weapon in back slot, and switch to it
+			// - if no: drop current weapon and equip new weapon
+			if (WeaponsInBack[0] == null)
 			{
-				// If the weapon is already collected at least refill the ammo.
-				weapon.AddAmmo(weapon.StartAmmo - weapon.RemainingAmmo);
+				WeaponsInBack.Set(0, weaponObject);
+				SwitchWeapon();
 			}
 			else
 			{
-				// Weapon is already present inside Player prefab,
-				// marking it as IsCollected is all that is needed.
-				weapon.IsCollected = true;
+				DropWeapon();
+				CurrentWeapon = weaponObject.GetComponent<Weapon>();
+				
 			}
 
-			SwitchWeapon(weaponType);
+			
 
-			return true;
+
 		}
 
-		public Weapon GetWeapon(EWeaponType weaponType)
+		public Weapon GetWeaponInBack()
 		{
-			for (int i = 0; i < AllWeapons.Length; ++i)
-			{
-				if (AllWeapons[i].Type == weaponType)
-					return AllWeapons[i];
-			}
+			if (weaponsInBack[0] != null && weaponsInBack[0] != CurrentWeapon)
+				return weaponsInBack[0];
 
 			return default;
 		}
@@ -190,7 +286,7 @@ namespace SimpleFPS
 		{
 			// All weapons are already present inside Player prefab.
 			// This is the simplest solution when only few weapons are available in the game.
-			AllWeapons = GetComponentsInChildren<Weapon>();
+			
 			AllGranades = GetComponentsInChildren<Granade>();
 		}
 
@@ -227,8 +323,8 @@ namespace SimpleFPS
 		{
 			if (HasStateAuthority)
 			{
-				CurrentWeapon = AllWeapons[0];
-				CurrentWeapon.IsCollected = true;
+				//CurrentWeapon = AllWeapons[0];
+				//CurrentWeapon.IsCollected = true;
 
 				CurrentGranade = AllGranades[0];
 			}
@@ -257,10 +353,16 @@ namespace SimpleFPS
 			_visibleWeapon = CurrentWeapon;
 
 			// Update weapon visibility
-			for (int i = 0; i < AllWeapons.Length; i++)
+			//for (int i = 0; i < AllWeapons.Length; i++)
+			//{
+			//	var weapon = AllWeapons[i];
+			//	weapon.ToggleVisibility(weapon == CurrentWeapon);
+			//}
+
+			_visibleWeapon.ToggleVisibility(true); 
+			foreach (var weapon in weaponsInBack)
 			{
-				var weapon = AllWeapons[i];
-				weapon.ToggleVisibility(weapon == CurrentWeapon);
+				weapon.ToggleVisibility(false);
 			}
 
 			var playerKey = new PlayerKey(Runner.LocalPlayer, player.LocalIndex);
@@ -283,7 +385,7 @@ namespace SimpleFPS
 
 
 			FirstPersonSetup.Animator.runtimeAnimatorController = _visibleWeapon.HandsAnimatorController;
-			ThirdPersonSetup.Animator.SetFloat(AnimatorId.WeaponId, Array.IndexOf(AllWeapons, CurrentWeapon));
+			ThirdPersonSetup.Animator.SetFloat(AnimatorId.WeaponId, (int)_visibleWeapon.ThirdPersonAnimationType);
 
 			// Hide and show animations are played only for local player
 			if (_firstPersonActive)

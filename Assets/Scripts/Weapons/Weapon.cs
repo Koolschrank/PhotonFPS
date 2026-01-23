@@ -8,10 +8,31 @@ namespace SimpleFPS
 {
 	public enum EWeaponType
 	{
+		None = 0,
+		Pistol = 1,
+		AssultRifle = 2,
+		BattleRifle = 3,
+		Shotgun = 4,
+		SniperRifle = 5,
+		RocketLauncher = 6,
+		PlasmaRifle = 7,
+		LaserGun = 8,
+		
+
+		Hammer = 20,
+		GreatSword = 21,
+
+		GrenadeLauncher = 31,
+		FireGrenadeLauncher = 32,
+	}
+
+	public enum EWeaponThirdPersonAnimationType
+	{
 		None,
-		Pistol,
-		Rifle,
-		Shotgun,
+		Pistol = 1,
+		Rifle = 2,
+		Shotgun = 3,
+		
 	}
 
 	/// <summary>
@@ -43,6 +64,7 @@ namespace SimpleFPS
 		[Header("Visuals")]
 		public Sprite      Icon;
 		public string      Name;
+		public EWeaponThirdPersonAnimationType ThirdPersonAnimationType;
 		public RuntimeAnimatorController HandsAnimatorController;
 
 		[Header("Sounds")]
@@ -56,7 +78,7 @@ namespace SimpleFPS
 		public WeaponVisual_ThirdPerson ThirdPersonVisual;
 		public WeaponVisual_FPS FirstPersonVisual;
 
-		public bool HasAmmo => ClipAmmo > 0 || RemainingAmmo > 0;
+		public bool HasAmmo => AmmoInMagazin > 0 || RemainingAmmo > 0;
 
 		[Networked, HideInInspector]
 		public PlayerKey OwnerPlayerKey { get; set; }
@@ -65,7 +87,7 @@ namespace SimpleFPS
 		[Networked, HideInInspector]
 		public NetworkBool IsReloading { get; set; }
 		[Networked, HideInInspector]
-		public int ClipAmmo { get; set; }
+		public int AmmoInMagazin { get; set; }
 		[Networked, HideInInspector]
 		public int RemainingAmmo { get; set; }
 
@@ -92,7 +114,7 @@ namespace SimpleFPS
 			if (_fireCooldown.ExpiredOrNotRunning(Runner) == false)
 				return false;
 
-			if (ClipAmmo <= 0)
+			if (AmmoInMagazin <= 0)
 			{
 				PlayEmptyClipSound(justPressed);
 				return false;
@@ -117,7 +139,7 @@ namespace SimpleFPS
 			}
 
 			_fireCooldown = TickTimer.CreateFromTicks(Runner, _fireTicks);
-			ClipAmmo--;
+			AmmoInMagazin--;
 
 			return true;
 		}
@@ -126,7 +148,7 @@ namespace SimpleFPS
 		{
 			if (IsCollected == false)
 				return;
-			if (ClipAmmo >= MaxClipAmmo)
+			if (AmmoInMagazin >= MaxClipAmmo)
 				return;
 			if (RemainingAmmo <= 0)
 				return;
@@ -184,8 +206,8 @@ namespace SimpleFPS
 		{
 			if (HasStateAuthority)
 			{
-				ClipAmmo = Mathf.Clamp(StartAmmo, 0, MaxClipAmmo);
-				RemainingAmmo = StartAmmo - ClipAmmo;
+				AmmoInMagazin = Mathf.Clamp(StartAmmo, 0, MaxClipAmmo);
+				RemainingAmmo = StartAmmo - AmmoInMagazin;
 			}
 
 			_visibleFireCount = _fireCount;
@@ -201,7 +223,7 @@ namespace SimpleFPS
 			if (IsCollected == false)
 				return;
 
-			if (ClipAmmo == 0)
+			if (AmmoInMagazin == 0)
 			{
 				// Try auto-reload.
 				Reload();
@@ -212,10 +234,10 @@ namespace SimpleFPS
 				// Reloading finished.
 				IsReloading = false;
 
-				int reloadAmmo = MaxClipAmmo - ClipAmmo;
+				int reloadAmmo = MaxClipAmmo - AmmoInMagazin;
 				reloadAmmo = Mathf.Min(reloadAmmo, RemainingAmmo);
 
-				ClipAmmo += reloadAmmo;
+				AmmoInMagazin += reloadAmmo;
 				RemainingAmmo -= reloadAmmo;
 
 				// Add small prepare time after reload.

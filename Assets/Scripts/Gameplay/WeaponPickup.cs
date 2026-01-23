@@ -20,6 +20,11 @@ namespace SimpleFPS
 		[Networked]
 		private TickTimer _activationTimer { get; set; }
 
+		[Networked]
+		public int ammoInMagazine { get; set; }
+		[Networked]
+		public int ammoInReserve { get; set; }
+
 		private static Collider[] _colliders = new Collider[8];
 
 		public override void Spawned()
@@ -39,9 +44,11 @@ namespace SimpleFPS
 			{
 				// Check for Weapons component on collider game object or any parent.
 				var weapons = _colliders[i].GetComponentInParent<Weapons>();
-				if (weapons != null && weapons.PickupWeapon(Type))
+				
+				if (weapons != null)
 				{
 					// Pickup was successful, activating timer.
+					weapons.PickupWeapon(Type, ammoInMagazine, ammoInReserve);
 					_activationTimer = TickTimer.CreateFromSeconds(Runner, Cooldown);
 					break;
 				}
