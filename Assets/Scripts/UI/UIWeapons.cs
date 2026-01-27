@@ -1,4 +1,5 @@
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,64 +17,45 @@ namespace SimpleFPS
 	    public CanvasGroup   WeaponThumbnail;
 		public CanvasGroup BackWeaponThumbnail;
 
-		private Weapon _weapon;
-	    private int _lastClipAmmo;
-	    private int _lastRemainingAmmo;
+		private EWeaponType _lastweaponType;
+	    private int _lastAmmoInMagazin;
+	    private int _lastReserveAmmo;
 
 	    public void UpdateWeapons(Weapons weapons)
 	    {
-		    SetWeapon(weapons.CurrentWeapon);
 
-			bool hasWeaponInHand = weapons.CurrentWeapon != null;
-			WeaponThumbnail.alpha = hasWeaponInHand ? 1f : 0f;
-			bool hasWeaponInBack = weapons.GetWeaponInBack() != null;
-			BackWeaponThumbnail.alpha = hasWeaponInBack ? 1f : 0f;
-
-
-			if (_weapon == null)
-			    return;
-
-		    UpdateAmmoProgress();
-
-		    // Modify UI text only when value changed.
-		    if (_weapon.AmmoInMagazin == _lastClipAmmo && _weapon.RemainingAmmo == _lastRemainingAmmo)
-			    return;
-
-		    ClipAmmo.text = _weapon.AmmoInMagazin.ToString();
-		    RemainingAmmo.text = _weapon.RemainingAmmo < 1000 ? _weapon.RemainingAmmo.ToString() : "-";
-
-		    NoAmmoGroup.SetActive(_weapon.AmmoInMagazin == 0 && _weapon.RemainingAmmo == 0);
-
-		    _lastClipAmmo = _weapon.AmmoInMagazin;
-		    _lastRemainingAmmo = _weapon.RemainingAmmo;
+		    SetWeapon(weapons.ActiveWeapon);
+			UpdateAmmoProgress(weapons.ActiveWeapon);
 	    }
 
-	    private void SetWeapon(Weapon weapon)
+	    private void SetWeapon(WeaponState weapon)
 	    {
-		    if (weapon == _weapon)
-			    return;
+			if ( weapon.WeaponType == _lastweaponType)
+			{
+				return;
+			}
+			var weaponData = WeaponDatabase.weaponList.GetWeaponData(weapon.WeaponType);
+			_lastweaponType = weapon.WeaponType;
 
-		    _weapon = weapon;
-
-		    if (weapon == null)
-			    return;
-
-		    WeaponIcon.sprite = weapon.Icon;
-		    WeaponIconShadow.sprite = weapon.Icon;
-			WeaponName.text = weapon.Name;
+		    WeaponIcon.sprite = weaponData.weaponIcon;
+		    WeaponIconShadow.sprite = weaponData.weaponIcon;
 	    }
 
-	    private void UpdateAmmoProgress()
+	    private void UpdateAmmoProgress(WeaponState weapon)
 	    {
-		    if (_weapon.IsReloading)
-		    {
-			    // During reloading the ammo progress bar slowly fills.
-			    AmmoProgress.fillAmount = _weapon.GetReloadProgress();
-		    }
-		    else
-		    {
-			    AmmoProgress.fillAmount = _weapon.AmmoInMagazin / (float)_weapon.MaxClipAmmo;
-		    }
-	    }
+			if (weapon.AmmoReserve != _lastReserveAmmo)
+			{
+				_lastReserveAmmo = weapon.AmmoReserve;
+			}
+			if (weapon.AmmoInMagazin != _lastAmmoInMagazin)
+			{
+				_lastAmmoInMagazin = weapon.AmmoInMagazin;
+			}
+			ClipAmmo.text = _lastAmmoInMagazin.ToString();
+			RemainingAmmo.text = _lastReserveAmmo.ToString();
+			int maxMagazinSize = WeaponDatabase.weaponList.GetWeaponData(weapon.WeaponType).MagazinSize;
+
+			AmmoProgress.fillAmount = weapon.AmmoInMagazin / (float)maxMagazinSize;
+		}
 	}
 }

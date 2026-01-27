@@ -8,6 +8,7 @@ namespace SimpleFPS
 	/// </summary>
 	public class WeaponPickup : NetworkBehaviour
 	{
+
 		public EWeaponType Type;
 		public float       Radius = 1f;
 		public float       Cooldown = 30f;
@@ -47,8 +48,10 @@ namespace SimpleFPS
 				
 				if (weapons != null)
 				{
+
+					WeaponState state = new WeaponState { WeaponType = Type, AmmoInMagazin = ammoInMagazine, AmmoReserve = ammoInReserve };
 					// Pickup was successful, activating timer.
-					weapons.PickupWeapon(Type, ammoInMagazine, ammoInReserve);
+					weapons.PickupWeapon(state);
 					_activationTimer = TickTimer.CreateFromSeconds(Runner, Cooldown);
 					break;
 				}

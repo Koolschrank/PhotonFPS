@@ -6,6 +6,20 @@ using UnityEngine.Serialization;
 
 namespace SimpleFPS
 {
+	public enum EShootType
+	{
+		Single = 0,
+		Automatic = 1,
+		Burst = 2,
+
+		chargeInstantRelease = 10,
+		chargeManualRelease = 11,
+		chargeAutomatic = 12,
+
+		specialMelee = 20,
+
+	}
+
 	public enum EWeaponType
 	{
 		None = 0,
@@ -17,13 +31,18 @@ namespace SimpleFPS
 		RocketLauncher = 6,
 		PlasmaRifle = 7,
 		LaserGun = 8,
-		
+		DualSMG = 9,
+		HeavyCrossbow = 10,
 
 		Hammer = 20,
 		GreatSword = 21,
 
 		GrenadeLauncher = 31,
 		FireGrenadeLauncher = 32,
+
+		HealBeam = 40,
+		GravityGun = 41,
+
 	}
 
 	public enum EWeaponThirdPersonAnimationType
@@ -42,24 +61,8 @@ namespace SimpleFPS
 	/// </summary>
 	public class Weapon : NetworkBehaviour
 	{
-		public EWeaponType Type;
-		 
-
-		[Header("Fire Setup")]
-		public bool        IsAutomatic = true;
-		public float       Damage = 10f;
-		public float       DamageForce = 100f;
-		public int         FireRate = 100;
-		[Range(1, 20)]
-		public int         ProjectilesPerShot = 1;
-		public float       Dispersion = 0f;
-		public LayerMask   HitMask;
-		public float       MaxHitDistance = 100f;
-
-		[Header("Ammo")]
-		public int         MaxClipAmmo = 12;
-		public int         StartAmmo = 25;
-		public float       ReloadTime = 2f;
+		/*
+		public WeaponData data;
 
 		[Header("Visuals")]
 		public Sprite      Icon;
@@ -218,6 +221,11 @@ namespace SimpleFPS
 			_sceneObjects = Runner.GetSingleton<SceneObjects>();
 		}
 
+		public void SimulateTick()
+		{
+
+		}
+
 		public override void FixedUpdateNetwork()
 		{
 			if (IsCollected == false)
@@ -374,7 +382,7 @@ namespace SimpleFPS
 
 			_projectileData.Set(_fireCount % _projectileData.Length, projectileData);
 			_fireCount++;
-		}*/
+		}
 
 		private void PlayFireEffect()
 		{
@@ -439,9 +447,9 @@ namespace SimpleFPS
 				EmptyClipSound.Play();
 			}
 		}
+		*/
 
-		
-		
+
 	}
 
 	/// <summary>

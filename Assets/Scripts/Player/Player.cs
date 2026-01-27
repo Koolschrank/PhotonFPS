@@ -156,7 +156,7 @@ namespace SimpleFPS
 				RefreshCamera();
 			}
 
-			
+			Weapons.SimulateTick();
 		}
 
 		public override void Render()
@@ -167,7 +167,7 @@ namespace SimpleFPS
 
 			Animator.SetFloat(AnimatorId.LocomotionTime, Time.time * 2f);
 			Animator.SetBool(AnimatorId.IsGrounded, KCC.IsGrounded);
-			Animator.SetBool(AnimatorId.IsReloading, Weapons.CurrentWeapon.IsReloading);
+			Animator.SetBool(AnimatorId.IsReloading, Weapons.InReloadCooldown);
 			Animator.SetFloat(AnimatorId.MoveX, moveVel.x, 0.05f, Time.deltaTime);
 			Animator.SetFloat(AnimatorId.MoveZ, moveVel.z, 0.05f, Time.deltaTime);
 			Animator.SetFloat(AnimatorId.MoveSpeed, moveVel.magnitude);
@@ -261,7 +261,7 @@ namespace SimpleFPS
 
 		public void ProcessWeaponInput(NetworkedInputPlayer input)
 		{
-			
+			Weapons.ProcessInput(_previousButtons, input);
 		}
 
 		private void MovePlayer(Vector3 desiredMoveVelocity = default, float jumpImpulse = 0f)

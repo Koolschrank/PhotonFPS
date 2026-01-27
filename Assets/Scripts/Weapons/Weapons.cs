@@ -8,7 +8,7 @@ namespace SimpleFPS
 	public struct WeaponState : INetworkStruct
 	{
 		public EWeaponType WeaponType;
-		public int AmmoInMag;
+		public int AmmoInMagazin;
 		public int AmmoReserve;
 		public float Util;       // meaning depends on weapon like zoom level for sniper, charge level for charge weapon etc.
 	}
@@ -23,11 +23,12 @@ namespace SimpleFPS
 		[Header("Setup")]
 		public Player player;
 		public Transform FireTransform;
-		public Transform WeaponParentObject;
+		public WeaponFireHandler WeaponFireHandler;
 		public Setup FirstPersonSetup;
 		public Setup ThirdPersonSetup;
 		public float WeaponSwitchTime = 1f;
 		
+
 
 		[Header("Sounds")]
 		public AudioSource SwitchSound;
@@ -40,12 +41,26 @@ namespace SimpleFPS
 
 		[Networked] private TickTimer _fireCooldown { get; set; }
 		[Networked] private TickTimer _reloadCooldown { get; set; }
+		[Networked] private bool _reloadAmmoApplied { get; set; }
 		[Networked] private TickTimer _switchTimer { get; set; }
+		[Networked] private bool _switchApplied { get; set; }
 		[Networked] private TickTimer _granadeThrowTimer { get; set; }
 		[Networked] private TickTimer _inMeleeTimer { get; set; }
 
+		public WeaponState ActiveWeapon => WeaponsOwned[ActiveWeaponSlot];
+
+		public WeaponState BackWeapon{
+			get
+			{
+				int otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
+				return WeaponsOwned[otherWeaponSlot];
+			}
+		}
+
 		public bool InFireCooldown => _fireCooldown.ExpiredOrNotRunning(Runner) == false;
 		public float? FireCooldownRemaining => _fireCooldown.RemainingTime(Runner);
+
+		private int fireCooldownInTicks;
 		public bool InReloadCooldown => _reloadCooldown.ExpiredOrNotRunning(Runner) == false;
 		public bool IsSwitching => _switchTimer.ExpiredOrNotRunning(Runner) == false;
 		public bool InGranadeThrowCooldown => _granadeThrowTimer.ExpiredOrNotRunning(Runner) == false;
@@ -61,8 +76,16 @@ namespace SimpleFPS
 		public Granade CurrentGranade { get; set; }
 
 
-		public Weapon[] weaponObjectsOwned { get; } = new Weapon[2];
+		public Transform firstPersonWeaponParent;
+		private WeaponVisualFirstPerson firstPersonWeaponVisual;
+		public Transform thirdPersonWeaponParent;
+		private WeaponVisualThirdPerson thirdPersonWeaponVisual;
+		public Transform backWeaponParent;
+		private WeaponVisualThirdPerson weaponOnBackVisual;
 
+
+		
+		
 
 		/*
 
@@ -109,13 +132,60 @@ namespace SimpleFPS
 			}
 			else if (reloadPressed)
 			{
-				Reload();
+				EndReload();
 			}
 			else if (input.Buttons.IsSet(EInputButton.Fire))
 			{
 				bool justPressed = input.Buttons.WasPressed(_previousButtons, EInputButton.Fire);
-				Fire(justPressed);
+				TryFire(justPressed);
 				//Health.StopImmortality();
+			}
+		}
+
+		public void SimulateTick()
+		{
+			SimulateRelaod();
+			SimulateSwitchWeapon();
+		}
+
+		public void SimulateRelaod()
+		{
+			if (InReloadCooldown)
+			{
+				if (_reloadAmmoApplied == false)
+				{
+					var weaponData = WeaponDatabase.weaponList.GetWeaponData(WeaponsOwned[ActiveWeaponSlot].WeaponType);
+					float reloadFillTime = weaponData.ReloadTime * weaponData.ReloadFillAt;
+					if (_reloadCooldown.RemainingTime(Runner) <= (weaponData.ReloadTime - reloadFillTime))
+					{
+						Reload();
+					}
+				}
+				if (_reloadCooldown.Expired(Runner))
+				{
+					EndReload();
+				}
+			}
+		}
+
+		public void SimulateSwitchWeapon()
+		{
+			if (IsSwitching)
+			{
+				if (_switchApplied == false)
+				{
+					var otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
+					var otherWeaponData = WeaponsOwned[otherWeaponSlot];
+					float switchInTime = WeaponDatabase.weaponList.GetWeaponData(otherWeaponData.WeaponType).switchInTime;
+					if (_switchTimer.RemainingTime(Runner) <= switchInTime)
+					{
+						SwitchWeapon();
+					}
+				}
+				if (_switchTimer.Expired(Runner))
+				{
+					EndSwitchWeapon();
+				}
 			}
 		}
 
@@ -123,22 +193,23 @@ namespace SimpleFPS
 
 		public void SetFirstPersonLayer(int layer)
 		{
-			
-
 			FirstPersonSetup.WeaponLayer = layer;
-
-			if (weaponObjectsOwned[ActiveWeaponSlot] != null && weaponObjectsOwned[ActiveWeaponSlot].firstPersonVisible)
+			if (firstPersonWeaponVisual != null)
 			{
-				LayerTools.SetLayerRecursively(weaponObjectsOwned[ActiveWeaponSlot].FirstPersonVisual.gameObject, layer);
+				LayerTools.SetLayerRecursively(firstPersonWeaponVisual.gameObject, layer);
 			}
 		}
 
 		public void SetThirdPersonLayer(int layer)
 		{
 			ThirdPersonSetup.WeaponLayer = layer;
-			if (weaponObjectsOwned[ActiveWeaponSlot] != null && weaponObjectsOwned[ActiveWeaponSlot].thirdPersonVisible)
+			if (thirdPersonWeaponVisual != null)
 			{
-				LayerTools.SetLayerRecursively(weaponObjectsOwned[ActiveWeaponSlot].ThirdPersonVisual.gameObject, layer);
+				LayerTools.SetLayerRecursively(thirdPersonWeaponVisual.gameObject, layer);
+			}
+			if (weaponOnBackVisual != null)
+			{
+				LayerTools.SetLayerRecursively(weaponOnBackVisual.gameObject, layer);
 			}
 		}
 
@@ -174,41 +245,147 @@ namespace SimpleFPS
 				return;
 		}
 
-		public void Fire(bool justPressed)
+		public void TryFire(bool justPressed)
 		{
+			var isShootCooldownOver = !InFireCooldown;
+			if (!isShootCooldownOver)
+				return;
+
 			if (ActiveWeaponSlot < 0 || ActiveWeaponSlot >= WeaponsOwned.Length || WeaponsOwned[ActiveWeaponSlot].WeaponType == 0)
 				return;
 
-			if (CurrentWeapon.Fire(FireTransform.position, FireTransform.forward, justPressed) == false)
-				return;
+			
 
-			// For local player play fire animation but only
-			// in forward tick as starting animation multiple times
-			// during resimulations is not desired.
+			var weaponData = WeaponDatabase.weaponList.GetWeaponData(WeaponsOwned[ActiveWeaponSlot].WeaponType);
+			var shootType = weaponData.shootType;
+			
+
+			switch (shootType)
+			{
+				case EShootType.Single:
+					if (justPressed)
+						Fire();
+					return;
+				case EShootType.Burst:
+				case EShootType.Automatic:
+					Fire();
+					return;
+				
+			}
+			
+		}
+
+		public void Fire()
+		{
+			var weaponData = WeaponDatabase.weaponList.GetWeaponData(WeaponsOwned[ActiveWeaponSlot].WeaponType);
+			var bulletData = weaponData.bulletData;
+			WeaponFireHandler.Fire(weaponData, bulletData);
+
+			
+
+			_fireCooldown = TickTimer.CreateFromSeconds(Runner, fireCooldownInTicks);
+
 			if (_firstPersonActive && Runner.IsForward)
 			{
 				FirstPersonSetup.Animator.SetTrigger(AnimatorId.Fire);
 			}
 		}
 
-		public void Reload()
+		public void TryStartReload()
 		{
-			if (CurrentWeapon == null || IsSwitching)
+			var weaponData = WeaponDatabase.weaponList.GetWeaponData(WeaponsOwned[ActiveWeaponSlot].WeaponType);
+			var weaponState = WeaponsOwned[ActiveWeaponSlot];
+			bool isMagazinFull = weaponState.AmmoInMagazin >= weaponData.MagazinSize;
+			bool hasReserveAmmo = weaponState.AmmoReserve > 0;
+			if (isMagazinFull || !hasReserveAmmo)
 				return;
 
-			CurrentWeapon.Reload();
+			StartReload();
+		}
+
+		public void StartReload()
+		{
+			_reloadAmmoApplied = false;
+			var weaponData = WeaponDatabase.weaponList.GetWeaponData(WeaponsOwned[ActiveWeaponSlot].WeaponType);
+			_reloadCooldown = TickTimer.CreateFromSeconds(Runner, weaponData.ReloadTime);
+			if (_firstPersonActive && Runner.IsForward)
+			{
+				FirstPersonSetup.Animator.SetTrigger(AnimatorId.IsReloading);
+			}
+		}
+
+		public void Reload()
+		{
+			_reloadAmmoApplied = true;
+			var weaponData = WeaponDatabase.weaponList.GetWeaponData(WeaponsOwned[ActiveWeaponSlot].WeaponType);
+			var weaponState = WeaponsOwned[ActiveWeaponSlot];
+			int ammoNeeded = weaponData.MagazinSize - weaponState.AmmoInMagazin;
+			int ammoToLoad = Math.Min(ammoNeeded, weaponState.AmmoReserve);
+			weaponState.AmmoInMagazin += ammoToLoad;
+			weaponState.AmmoReserve -= ammoToLoad;
+			WeaponsOwned.Set(ActiveWeaponSlot, weaponState);
+		}
+
+		public void EndReload()
+		{
+			_reloadCooldown = TickTimer.None;
+		}
+
+		public void CancelReload()
+		{
+			_reloadCooldown = TickTimer.None;
 		}
 
 		public void DropWeapon()
 		{
-			if (CurrentWeapon == null || IsSwitching)
-				return;
+			WeaponsOwned.Set(ActiveWeaponSlot, new WeaponState { WeaponType = EWeaponType.None, AmmoInMagazin = 0, AmmoReserve = 0, Util = 0f });
+		}
 
-			// For simplicity just remove current weapon	
-			CurrentWeapon = null;
+		public void TryStartSwitchWeapon()
+		{
+			int otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
+			var otherWeaponData = WeaponsOwned[otherWeaponSlot];
+			if (otherWeaponData.WeaponType == EWeaponType.None)
+				return;
+		}
+
+		public void StartSwitchWeapon()
+		{
+			var currentWeaponData = WeaponsOwned[ActiveWeaponSlot];
+			int otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
+			var otherWeaponData = WeaponsOwned[otherWeaponSlot];
+			float switchTime = 
+				WeaponDatabase.weaponList.GetWeaponData(currentWeaponData.WeaponType).switchOutTime
+				+ WeaponDatabase.weaponList.GetWeaponData(otherWeaponData.WeaponType).switchInTime;
+			_switchTimer = TickTimer.CreateFromSeconds(Runner, switchTime);
+			_switchApplied = false;
+
+			// For local player start with switch animation but only
+			// in forward tick as starting animation multiple times
+			// during resimulations is not desired.
+			if (_firstPersonActive && Runner.IsForward)
+			{
+				FirstPersonSetup.Animator.SetTrigger(AnimatorId.Hide);
+				SwitchSound.Play();
+			}
 		}
 
 		public void SwitchWeapon()
+		{
+			int otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
+			EquipWeapon(otherWeaponSlot);
+			_switchApplied = true;
+
+
+		}
+
+		public void EndSwitchWeapon()
+		{
+			_switchTimer = TickTimer.None;
+		}
+
+		/*
+		public void SwitchWeapon_Old()
 		{
 			var newWeapon = GetWeaponInBack();
 
@@ -227,20 +404,51 @@ namespace SimpleFPS
 			_pendingWeapon = newWeapon;
 			_switchTimer = TickTimer.CreateFromSeconds(Runner, WeaponSwitchTime);
 
-			// For local player start with switch animation but only
-			// in forward tick as starting animation multiple times
-			// during resimulations is not desired.
-			if (_firstPersonActive && Runner.IsForward)
+			
+		}*/
+
+		public void EquipWeapon(int weaponIndex)
+		{
+			ActiveWeaponSlot = weaponIndex;
+			var weaponState = WeaponsOwned[ActiveWeaponSlot];
+
+
+			// start switch timer if not already started, that can happen when picking up a weapon
+			if (_switchTimer.ExpiredOrNotRunning(Runner))
 			{
-				FirstPersonSetup.Animator.SetTrigger(AnimatorId.Hide);
-				SwitchSound.Play();
+				var weaponData = WeaponDatabase.weaponList.GetWeaponData(weaponState.WeaponType);
+				_switchTimer = TickTimer.CreateFromSeconds(Runner, weaponData.switchInTime);
 			}
+
+			// calculate fire cooldown in ticks
+			var weaponFireRate = WeaponDatabase.weaponList.GetWeaponData(weaponState.WeaponType).FireRate;
+			float fireTime = 60f / weaponFireRate;
+			fireCooldownInTicks = Mathf.CeilToInt(fireTime / Runner.DeltaTime);
 		}
 
-		public void PickupWeapon(EWeaponType weaponType, int ammoInMagazin, int ammoInReserve)
+		public void PickupWeapon(WeaponState newWeapon)
 		{
-			// create weapon object 
+			var weaponType = newWeapon.WeaponType;
 			var weaponData = WeaponDatabase.weaponList.GetWeaponData(weaponType);
+			int otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
+			bool isOtherWeaponSlotFree = WeaponsOwned[otherWeaponSlot].WeaponType == EWeaponType.None;
+
+			if (isOtherWeaponSlotFree)
+			{
+				WeaponsOwned.Set(otherWeaponSlot, newWeapon);
+				TryStartSwitchWeapon();
+			}
+			else
+			{
+				if (WeaponsOwned[ActiveWeaponSlot].WeaponType != EWeaponType.None)
+				{
+					DropWeapon();
+				}
+				WeaponsOwned.Set(ActiveWeaponSlot, newWeapon);
+				EquipWeapon(ActiveWeaponSlot);
+			}
+
+			/*
 			var weaponObject = Runner.Spawn(
 				weaponData.weaponPrefab,
 				WeaponParentObject.position,
@@ -253,34 +461,14 @@ namespace SimpleFPS
 						w.AmmoInMagazin = ammoInMagazin;
 						w.RemainingAmmo = ammoInReserve;
 					}
-				});
-			// check if back weapon slot is free
-			// - if yes: put new weapon in back slot, and switch to it
-			// - if no: drop current weapon and equip new weapon
-			if (WeaponsInBack[0] == null)
-			{
-				WeaponsInBack.Set(0, weaponObject);
-				SwitchWeapon();
-			}
-			else
-			{
-				DropWeapon();
-				CurrentWeapon = weaponObject.GetComponent<Weapon>();
-				
-			}
+				});*/
 
 			
 
 
 		}
 
-		public Weapon GetWeaponInBack()
-		{
-			if (weaponsInBack[0] != null && weaponsInBack[0] != CurrentWeapon)
-				return weaponsInBack[0];
-
-			return default;
-		}
+		
 
 		private void Awake()
 		{
@@ -288,35 +476,6 @@ namespace SimpleFPS
 			// This is the simplest solution when only few weapons are available in the game.
 			
 			AllGranades = GetComponentsInChildren<Granade>();
-		}
-
-		private void LateUpdate()
-		{
-			if (Object == null)
-				return; // Not valid
-
-			if (_visibleWeapon != null)
-			{
-				if (_firstPersonActive)
-				{
-					var weaponTransform = _visibleWeapon.FirstPersonVisual.gameObject.transform;
-					var weaponPivot = _visibleWeapon.FirstPersonVisual.Pivot;
-					weaponTransform.rotation = FirstPersonSetup.WeaponHandle.rotation * weaponPivot.localRotation;
-					weaponTransform.position = FirstPersonSetup.WeaponHandle.position + weaponTransform.rotation * weaponPivot.localPosition;
-				}
-				if (_thirdPersonActive)
-				{
-					
-					var weaponTransform = _visibleWeapon.ThirdPersonVisual.gameObject.transform;
-					var weaponPivot = _visibleWeapon.ThirdPersonVisual.Pivot;
-
-					weaponTransform.SetParent(ThirdPersonSetup.WeaponHandle);
-					weaponTransform.rotation = ThirdPersonSetup.WeaponHandle.rotation * weaponPivot.localRotation;
-					weaponTransform.position = ThirdPersonSetup.WeaponHandle.position + weaponTransform.rotation * weaponPivot.localPosition;
-				}
-
-				
-			}
 		}
 
 		public override void Spawned()
@@ -330,84 +489,115 @@ namespace SimpleFPS
 			}
 		}
 
-		public override void FixedUpdateNetwork()
-		{
-			TryActivatePendingWeapon();
-		}
-
 		public override void Render()
 		{
-			UpdateVisibleWeapon();
+			UpdateFirstPersonWeapon();
 
+			/*
 			if (_firstPersonActive && CurrentWeapon != null)
 			{
 				FirstPersonSetup.Animator.SetBool(AnimatorId.IsReloading, CurrentWeapon.IsReloading);
-			}
+			}*/
 		}
 
-		private void UpdateVisibleWeapon()
+		private void UpdateFirstPersonWeapon()
 		{
-			if (_visibleWeapon == CurrentWeapon)
+			if (!_firstPersonActive) return;
+
+			bool hasWeaponInHand = WeaponsOwned[ActiveWeaponSlot].WeaponType != EWeaponType.None;
+			if (!hasWeaponInHand)
+			{
 				return;
+			}
+			var currentWeaponState = WeaponsOwned[ActiveWeaponSlot];
 
-			_visibleWeapon = CurrentWeapon;
-
-			// Update weapon visibility
-			//for (int i = 0; i < AllWeapons.Length; i++)
-			//{
-			//	var weapon = AllWeapons[i];
-			//	weapon.ToggleVisibility(weapon == CurrentWeapon);
-			//}
-
-			_visibleWeapon.ToggleVisibility(true); 
-			foreach (var weapon in weaponsInBack)
+			if (firstPersonWeaponVisual == null)
 			{
-				weapon.ToggleVisibility(false);
+				SpawnFirstPersonWeapon(currentWeaponState);
+			}
+			else if (firstPersonWeaponVisual.data.weaponType != currentWeaponState.WeaponType)
+			{
+				Destroy(firstPersonWeaponVisual.gameObject);
+				SpawnFirstPersonWeapon(currentWeaponState);
+			}
+			/*
+			if (_firstPersonActive && !visibleWeapon.firstPersonVisible)
+			{
+				visibleWeapon.CreateFPSVisual(FirstPersonSetup.WeaponLayer);
+				FirstPersonSetup.LeftHandSnap.Handle = visibleWeapon.FirstPersonVisual.LeftHandHandle;
+			}
+			if (_thirdPersonActive && !visibleWeapon.thirdPersonVisible)
+			{
+				visibleWeapon.CreateThirdPersonVisual(ThirdPersonSetup.WeaponLayer);
 			}
 
-			var playerKey = new PlayerKey(Runner.LocalPlayer, player.LocalIndex);
-			if (!_visibleWeapon.OwnerPlayerKey.Equals(playerKey))
-			{
-				_visibleWeapon.OwnerPlayerKey = playerKey;
-			}
-
-			if (_firstPersonActive&&!_visibleWeapon.firstPersonVisible)
-			{
-				_visibleWeapon.CreateFPSVisual(FirstPersonSetup.WeaponLayer);
-				
-
-				FirstPersonSetup.LeftHandSnap.Handle = _visibleWeapon.FirstPersonVisual.LeftHandHandle;
-			}
-			if (_thirdPersonActive && !_visibleWeapon.thirdPersonVisible)
-			{
-				_visibleWeapon.CreateThirdPersonVisual(ThirdPersonSetup.WeaponLayer);
-			}
-
-
-			FirstPersonSetup.Animator.runtimeAnimatorController = _visibleWeapon.HandsAnimatorController;
-			ThirdPersonSetup.Animator.SetFloat(AnimatorId.WeaponId, (int)_visibleWeapon.ThirdPersonAnimationType);
+			FirstPersonSetup.Animator.runtimeAnimatorController = visibleWeapon.HandsAnimatorController;
+			ThirdPersonSetup.Animator.SetFloat(AnimatorId.WeaponId, (int)visibleWeapon.ThirdPersonAnimationType);
 
 			// Hide and show animations are played only for local player
 			if (_firstPersonActive)
 			{
 				FirstPersonSetup.Animator.SetTrigger(AnimatorId.Show);
+			}*/
+		}
+
+		public void UpdateThirdPersonVisual()
+		{
+			if (!_thirdPersonActive) return;
+
+			bool hasWeaponInHand = WeaponsOwned[ActiveWeaponSlot].WeaponType != EWeaponType.None;
+			if (hasWeaponInHand)
+			{
+				var currentWeaponState = WeaponsOwned[ActiveWeaponSlot];
+
+				if (thirdPersonWeaponVisual == null)
+				{
+					SpawnThirdPersonWeapon(currentWeaponState);
+				}
+				else if (thirdPersonWeaponVisual.data.weaponType != currentWeaponState.WeaponType)
+				{
+					Destroy(thirdPersonWeaponVisual.gameObject);
+					SpawnThirdPersonWeapon(currentWeaponState);
+				}
+			}
+			var otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
+			bool hasWeaponOnBack = WeaponsOwned[otherWeaponSlot].WeaponType != EWeaponType.None;
+			if (hasWeaponOnBack)
+			{
+				var currentBackWeapon = WeaponsOwned[otherWeaponSlot];
+				if (weaponOnBackVisual == null)
+				{
+					SpawnWeaponOnBack(currentBackWeapon);
+				}
+				else if (weaponOnBackVisual.data.weaponType != currentBackWeapon.WeaponType)
+				{
+					Destroy(weaponOnBackVisual.gameObject);
+					SpawnWeaponOnBack(currentBackWeapon);
+				}
 			}
 		}
 
-		private void TryActivatePendingWeapon()
+		public void SpawnFirstPersonWeapon(WeaponState weaponInstance)
 		{
-			if (IsSwitching == false || _pendingWeapon == null)
-				return;
-
-			if (_switchTimer.RemainingTime(Runner) > WeaponSwitchTime * 0.5f)
-				return; // Too soon.
-
-			CurrentWeapon = _pendingWeapon;
-			_pendingWeapon = null;
-
-			// Make the weapon immediately active (previous weapon will be deactivated in Render)
-			CurrentWeapon.ToggleVisibility(true);
+			var weaponToSpawn = WeaponDatabase.weaponList.GetWeaponData(weaponInstance.WeaponType).weaponVisualFirstPerson;
+			firstPersonWeaponVisual = Instantiate(weaponToSpawn, firstPersonWeaponParent);
+			LayerTools.SetLayerRecursively(firstPersonWeaponVisual.gameObject, FirstPersonSetup.WeaponLayer);
 		}
+
+		public void SpawnThirdPersonWeapon(WeaponState weaponInstance)
+		{
+			var weaponToSpawn = WeaponDatabase.weaponList.GetWeaponData(weaponInstance.WeaponType).weaponVisualThirdPerson;
+			thirdPersonWeaponVisual = Instantiate(weaponToSpawn, thirdPersonWeaponParent);
+			LayerTools.SetLayerRecursively(thirdPersonWeaponVisual.gameObject, ThirdPersonSetup.WeaponLayer);
+		}
+
+		public void SpawnWeaponOnBack(WeaponState weaponInstance)
+		{
+			var weaponToSpawn = WeaponDatabase.weaponList.GetWeaponData(weaponInstance.WeaponType).weaponVisualThirdPerson;
+			weaponOnBackVisual =  Instantiate(weaponToSpawn, backWeaponParent);
+			LayerTools.SetLayerRecursively(weaponOnBackVisual.gameObject, ThirdPersonSetup.WeaponLayer);
+		}
+
 
 		// DATA STRUCTURES
 
