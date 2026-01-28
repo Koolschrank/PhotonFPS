@@ -43,6 +43,7 @@ namespace SimpleFPS
 		public GameUI GameUI;
 		public Device Device;
 		public Player PlayerPrefab;
+		public PlayerEquipment startEquipment;
 		public float GameDuration = 180f;
 		public float PlayerRespawnTime = 5f;
 		public float DoubleDamageDuration = 30f;
@@ -208,6 +209,11 @@ namespace SimpleFPS
 					if (newObj.TryGetComponent(out Player p))
 					{
 						p.LocalIndex = playerKey.LocalIndex;
+						
+					}
+					if (newObj.TryGetComponent(out Weapons weapons))
+					{
+						weapons.ApplyEquipment(startEquipment);
 					}
 				});
 			PlayerDict.Add(playerKey, player);

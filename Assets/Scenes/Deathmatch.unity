@@ -51688,6 +51688,7 @@ MonoBehaviour:
   GameUI: {fileID: 2056786212}
   Device: {fileID: 1944168647}
   PlayerPrefab: {fileID: 7289181853176218816, guid: a502c99225289824794be16d79c92b55, type: 3}
+  startEquipment: {fileID: 11400000, guid: d5ab1f6ea70b91049989191725bd927e, type: 2}
   GameDuration: 300
   PlayerRespawnTime: 5
   DoubleDamageDuration: 30

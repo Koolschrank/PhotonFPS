@@ -14,8 +14,7 @@ namespace SimpleFPS
 		public TextMeshProUGUI RemainingAmmo;
 	    public Image           AmmoProgress;
 	    public GameObject      NoAmmoGroup;
-	    public CanvasGroup   WeaponThumbnail;
-		public CanvasGroup BackWeaponThumbnail;
+		public Image BackWeaponIcon;
 
 		private EWeaponType _lastweaponType;
 	    private int _lastAmmoInMagazin;
@@ -26,7 +25,8 @@ namespace SimpleFPS
 
 		    SetWeapon(weapons.ActiveWeapon);
 			UpdateAmmoProgress(weapons.ActiveWeapon);
-	    }
+			SetBackWeapon(weapons.BackWeapon);
+		}
 
 	    private void SetWeapon(WeaponState weapon)
 	    {
@@ -56,6 +56,20 @@ namespace SimpleFPS
 			int maxMagazinSize = WeaponDatabase.weaponList.GetWeaponData(weapon.WeaponType).MagazinSize;
 
 			AmmoProgress.fillAmount = weapon.AmmoInMagazin / (float)maxMagazinSize;
+		}
+
+		public void SetBackWeapon(WeaponState weapon)
+		{
+			// none
+			if ( weapon.WeaponType == EWeaponType.None )
+			{
+				BackWeaponIcon.enabled = false;
+				return;
+			}
+			BackWeaponIcon.enabled = true;
+
+			var weaponData = WeaponDatabase.weaponList.GetWeaponData(weapon.WeaponType);
+			BackWeaponIcon.sprite = weaponData.weaponIcon;
 		}
 	}
 }

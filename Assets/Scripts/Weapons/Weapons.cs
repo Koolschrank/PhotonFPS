@@ -84,7 +84,8 @@ namespace SimpleFPS
 		private WeaponVisualThirdPerson weaponOnBackVisual;
 
 
-		
+		private int _visibleFireCount;
+
 		
 
 		/*
@@ -102,6 +103,34 @@ namespace SimpleFPS
 
 		private Weapon _visibleWeapon;*/
 
+		public void ApplyEquipment(PlayerEquipment playerEquipment)
+		{
+			ActiveWeaponSlot = 0;
+			if (playerEquipment.weaponInHand != EWeaponType.None)
+			{
+				var weaponData = WeaponDatabase.weaponList.GetWeaponData(playerEquipment.weaponInHand);
+				int magazinSize = weaponData.MagazinSize;
+				WeaponsOwned.Set(0, new WeaponState
+				{
+					WeaponType = playerEquipment.weaponInHand,
+					AmmoInMagazin = magazinSize,
+					AmmoReserve = magazinSize * (playerEquipment.weaponInHandMagazins - 1)
+				});
+			}
+			if (playerEquipment.secondaryWeapon != EWeaponType.None)
+			{
+				var weaponData = WeaponDatabase.weaponList.GetWeaponData(playerEquipment.secondaryWeapon);
+				int magazinSize = weaponData.MagazinSize;
+				WeaponsOwned.Set(1, new WeaponState
+				{
+					WeaponType = playerEquipment.secondaryWeapon,
+					AmmoInMagazin = magazinSize,
+					AmmoReserve = magazinSize * (playerEquipment.secondaryWeaponMagazins - 1)
+				});
+			}
+			EquipWeapon(ActiveWeaponSlot);
+		}
+
 		public void ProcessInput(NetworkButtons _previousButtons, NetworkedInputPlayer input)
 		{
 			bool throwGranadePressed = input.Buttons.WasPressed(_previousButtons, EInputButton.Granade);
@@ -114,7 +143,6 @@ namespace SimpleFPS
 			if (IsSwitching) return;
 			if (InGranadeThrowCooldown) return;
 			if (InMeleeCooldown) return;
-
 			if (meleePressed)
 			{
 				// cancel reloading if releoading
@@ -132,7 +160,7 @@ namespace SimpleFPS
 			}
 			else if (reloadPressed)
 			{
-				EndReload();
+				TryStartReload();
 			}
 			else if (input.Buttons.IsSet(EInputButton.Fire))
 			{
@@ -150,6 +178,17 @@ namespace SimpleFPS
 
 		public void SimulateRelaod()
 		{
+			var activeWeaponState = WeaponsOwned[ActiveWeaponSlot];
+			if (activeWeaponState.WeaponType != EWeaponType.None 
+				&& activeWeaponState.AmmoInMagazin <= 0 
+				&& activeWeaponState.AmmoReserve > 0
+				)
+			{
+				TryStartReload();
+			}
+				
+
+
 			if (InReloadCooldown)
 			{
 				if (_reloadAmmoApplied == false)
@@ -170,7 +209,7 @@ namespace SimpleFPS
 
 		public void SimulateSwitchWeapon()
 		{
-			if (IsSwitching)
+			if (IsSwitching )
 			{
 				if (_switchApplied == false)
 				{
@@ -247,11 +286,16 @@ namespace SimpleFPS
 
 		public void TryFire(bool justPressed)
 		{
-			var isShootCooldownOver = !InFireCooldown;
-			if (!isShootCooldownOver)
+			if (WeaponsOwned[ActiveWeaponSlot].AmmoInMagazin <= 0)
 				return;
 
-			if (ActiveWeaponSlot < 0 || ActiveWeaponSlot >= WeaponsOwned.Length || WeaponsOwned[ActiveWeaponSlot].WeaponType == 0)
+			if (InFireCooldown) return;
+			if (InReloadCooldown) return;
+			if (IsSwitching) return;
+			if (InMeleeCooldown) return;
+			if (InGranadeThrowCooldown) return;
+
+			if (ActiveWeaponSlot < 0 || ActiveWeaponSlot >= WeaponsOwned.Length || WeaponsOwned[ActiveWeaponSlot].WeaponType == EWeaponType.None)
 				return;
 
 			
@@ -283,16 +327,28 @@ namespace SimpleFPS
 
 			
 
-			_fireCooldown = TickTimer.CreateFromSeconds(Runner, fireCooldownInTicks);
+			_fireCooldown = TickTimer.CreateFromTicks(Runner, fireCooldownInTicks);
 
 			if (_firstPersonActive && Runner.IsForward)
 			{
 				FirstPersonSetup.Animator.SetTrigger(AnimatorId.Fire);
 			}
+
+			// Decrease ammo
+			var weaponState = WeaponsOwned[ActiveWeaponSlot];
+			weaponState.AmmoInMagazin -= 1;
+			WeaponsOwned.Set(ActiveWeaponSlot, weaponState);
 		}
 
 		public void TryStartReload()
 		{
+			if (InFireCooldown) return;
+			if (InReloadCooldown) return;
+			if (IsSwitching) return;
+			if (InMeleeCooldown) return;
+			if (InGranadeThrowCooldown) return;
+
+
 			var weaponData = WeaponDatabase.weaponList.GetWeaponData(WeaponsOwned[ActiveWeaponSlot].WeaponType);
 			var weaponState = WeaponsOwned[ActiveWeaponSlot];
 			bool isMagazinFull = weaponState.AmmoInMagazin >= weaponData.MagazinSize;
@@ -305,6 +361,7 @@ namespace SimpleFPS
 
 		public void StartReload()
 		{
+			Debug.Log("StartReload");
 			_reloadAmmoApplied = false;
 			var weaponData = WeaponDatabase.weaponList.GetWeaponData(WeaponsOwned[ActiveWeaponSlot].WeaponType);
 			_reloadCooldown = TickTimer.CreateFromSeconds(Runner, weaponData.ReloadTime);
@@ -416,13 +473,15 @@ namespace SimpleFPS
 			// start switch timer if not already started, that can happen when picking up a weapon
 			if (_switchTimer.ExpiredOrNotRunning(Runner))
 			{
+				
 				var weaponData = WeaponDatabase.weaponList.GetWeaponData(weaponState.WeaponType);
 				_switchTimer = TickTimer.CreateFromSeconds(Runner, weaponData.switchInTime);
+				_switchApplied = true;
 			}
 
 			// calculate fire cooldown in ticks
-			var weaponFireRate = WeaponDatabase.weaponList.GetWeaponData(weaponState.WeaponType).FireRate;
-			float fireTime = 60f / weaponFireRate;
+			var weaponFireRate = WeaponDatabase.weaponList.GetWeaponData(weaponState.WeaponType).ShotsPerSecond;
+			float fireTime = 1f / weaponFireRate;
 			fireCooldownInTicks = Mathf.CeilToInt(fireTime / Runner.DeltaTime);
 		}
 
@@ -476,6 +535,8 @@ namespace SimpleFPS
 			// This is the simplest solution when only few weapons are available in the game.
 			
 			AllGranades = GetComponentsInChildren<Granade>();
+
+			WeaponFireHandler.OnFire += VisulizeHitBullet;
 		}
 
 		public override void Spawned()
@@ -492,6 +553,7 @@ namespace SimpleFPS
 		public override void Render()
 		{
 			UpdateFirstPersonWeapon();
+			UpdateThirdPersonVisual();
 
 			/*
 			if (_firstPersonActive && CurrentWeapon != null)
@@ -515,11 +577,12 @@ namespace SimpleFPS
 			{
 				SpawnFirstPersonWeapon(currentWeaponState);
 			}
-			else if (firstPersonWeaponVisual.data.weaponType != currentWeaponState.WeaponType)
+			else if (firstPersonWeaponVisual.Data.weaponType != currentWeaponState.WeaponType)
 			{
 				Destroy(firstPersonWeaponVisual.gameObject);
 				SpawnFirstPersonWeapon(currentWeaponState);
 			}
+
 			/*
 			if (_firstPersonActive && !visibleWeapon.firstPersonVisible)
 			{
@@ -554,7 +617,7 @@ namespace SimpleFPS
 				{
 					SpawnThirdPersonWeapon(currentWeaponState);
 				}
-				else if (thirdPersonWeaponVisual.data.weaponType != currentWeaponState.WeaponType)
+				else if (thirdPersonWeaponVisual.Data.weaponType != currentWeaponState.WeaponType)
 				{
 					Destroy(thirdPersonWeaponVisual.gameObject);
 					SpawnThirdPersonWeapon(currentWeaponState);
@@ -569,7 +632,7 @@ namespace SimpleFPS
 				{
 					SpawnWeaponOnBack(currentBackWeapon);
 				}
-				else if (weaponOnBackVisual.data.weaponType != currentBackWeapon.WeaponType)
+				else if (weaponOnBackVisual.Data.weaponType != currentBackWeapon.WeaponType)
 				{
 					Destroy(weaponOnBackVisual.gameObject);
 					SpawnWeaponOnBack(currentBackWeapon);
@@ -596,6 +659,21 @@ namespace SimpleFPS
 			var weaponToSpawn = WeaponDatabase.weaponList.GetWeaponData(weaponInstance.WeaponType).weaponVisualThirdPerson;
 			weaponOnBackVisual =  Instantiate(weaponToSpawn, backWeaponParent);
 			LayerTools.SetLayerRecursively(weaponOnBackVisual.gameObject, ThirdPersonSetup.WeaponLayer);
+		}
+
+		public void VisulizeHitBullet(FireEvent fireEvent)
+		{
+
+			if (firstPersonWeaponVisual != null)
+			{
+				// shoot fp
+				firstPersonWeaponVisual.OnFire(fireEvent);
+			}
+			if (thirdPersonWeaponVisual != null)
+			{
+				// shoot tp
+				thirdPersonWeaponVisual.OnFire(fireEvent);
+			}
 		}
 
 

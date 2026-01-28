@@ -331,9 +331,9 @@ GameObject:
   m_Component:
   - component: {fileID: 3013842747929719226}
   - component: {fileID: 7259406179961253286}
-  - component: {fileID: 3104692374349802734}
+  - component: {fileID: 5169111760629912643}
   m_Layer: 0
-  m_Name: Pistol_Visual_ThirdPerson
+  m_Name: Pistol_ThirdPersonVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -383,7 +383,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &3104692374349802734
+--- !u!114 &5169111760629912643
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -392,16 +392,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 7645463364038268185}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84c8b5f2acb179345bc3f3c0b432a523, type: 3}
+  m_Script: {fileID: 11500000, guid: 06f4a61c71a33884ba092fbcd2b73b76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Pivot: {fileID: 4291987476701080228}
-  LeftHandHandle: {fileID: 0}
+  Data: {fileID: 11400000, guid: 1513cebb72ca9f648827ffa935c8a7ef, type: 2}
   WeaponAnimator: {fileID: 7259406179961253286}
-  MuzzleTransform: {fileID: 5518046497412938168}
-  MuzzleEffectPrefab: {fileID: 1523098076475304, guid: 49aa1d4c5624e66418cbfbe9784d6f23, type: 3}
-  ProjectileVisualPrefab: {fileID: 7491510959155936860, guid: 5041eeb12cd5049cea0ffc96bb0676f5, type: 3}
-  _muzzleEffectInstance: {fileID: 0}
+  Pivot: {fileID: 0}
+  LeftHandHandle: {fileID: 0}
+  MuzzleTransform: {fileID: 0}
+  MuzzleFlashPrefab: {fileID: 0}
+  HitscanBulletTrailPrefab: {fileID: 0}
+  HitscanImpactPrefab: {fileID: 0}
+  ProjectileVisualFP: {fileID: 0}
+  ProjectileVisualTP: {fileID: 0}
+  ConvergeTimeFP: 0.1
+  ConvergeTimeTP: 0.05
 --- !u!1 &8433362556789427594
 GameObject:
   m_ObjectHideFlags: 0

@@ -453,9 +453,9 @@ namespace SimpleFPS
 	}
 
 	/// <summary>
-	/// Structure representing single projectile shot.
+	/// Structure representing single hitscan shot.
 	/// </summary>
-	public struct ProjectileData : INetworkStruct
+	public struct HitscanBulletData : INetworkStruct
 	{
 		public Vector3 HitPosition;
 		public Vector3 HitNormal;

@@ -14,7 +14,7 @@ namespace SimpleFPS
 		[Header("Fire stats")]
 		public BulletData bulletData;
 		public EShootType shootType;
-		public int FireRate = 100;
+		public int ShotsPerSecond = 2;
 		
 		public float Dispersion = 0f;
 		

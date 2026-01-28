@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e45c48490b026a4db08bcb5fa2470ad, type: 3}
+  m_Name: PistolBullet
+  m_EditorClassIdentifier: 
+  Damage: 10
+  DamageForce: 100
+  HitMask:
+    serializedVersion: 2
+    m_Bits: 64
+  MaxHitDistance: 100
+  ProjectilesPerShot: 1
+  fpsViewBulletTrail: {fileID: 0}
+  thirdPersonBulletTrail: {fileID: 0}

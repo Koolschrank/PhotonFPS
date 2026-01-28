@@ -1,20 +1,21 @@
 using Fusion;
+using System;
 using System.Collections.Generic;
-using System.IO.Pipes;
 using UnityEngine;
-using static Unity.Collections.Unicode;
 
 namespace SimpleFPS
 {
-    public class WeaponFireHandler : NetworkBehaviour
+    public partial class WeaponFireHandler : NetworkBehaviour
 	{
+		public Action<FireEvent> OnFire;
+
 		public Transform firePoint;
 		public Player player;
 
-		[Networked]
-		private int _fireCount { get; set; }
+		[Networked, OnChangedRender(nameof(OnFireCountChanged))]
+		public int _fireCount { get; private set; }
 		[Networked, Capacity(32)]
-		private NetworkArray<ProjectileData> _projectileData { get; }
+		private NetworkArray<HitscanBulletData> _hitScanData { get; }
 
 		private SceneObjects _sceneObjects;
 
@@ -33,11 +34,10 @@ namespace SimpleFPS
 
 		private void ShootHitScanProjectile(WeaponData weaponData, HitScanData bulletData)
         {
-			
 			var firePosition = firePoint.position;
 			var fireDirection = firePoint.forward;
 
-			var projectileData = new ProjectileData();
+			var projectileData = new HitscanBulletData();
 
 			var hitOptions = HitOptions.IncludePhysX;
 			var hits = new List<LagCompensatedHit>();
@@ -89,9 +89,28 @@ namespace SimpleFPS
 				}
 			}
 
-			_projectileData.Set(_fireCount % _projectileData.Length, projectileData);
+			_hitScanData.Set(_fireCount % _hitScanData.Length, projectileData);
 			_fireCount++;
 
+		}
+
+		int shootsVisualized = -1;
+		void OnFireCountChanged()
+		{
+			for (int i = shootsVisualized + 1; i <= _fireCount; i++)
+			{
+				int index = i % _hitScanData.Length;
+				var data = _hitScanData[index];
+
+				FireEvent fireEvent = new FireEvent();
+				fireEvent.HitPosition = data.HitPosition;
+				fireEvent.HitNormal = data.HitNormal;
+				fireEvent.HasHit = data.ShowHitEffect;
+
+
+				OnFire?.Invoke(fireEvent);
+			}
+			shootsVisualized = _fireCount;
 		}
 
 		private void ApplyDamage(Hitbox enemyHitbox, Vector3 position, Vector3 direction, WeaponData weaponData, HitScanData bulletData)

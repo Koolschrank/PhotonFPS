@@ -2,8 +2,7 @@ using UnityEngine;
 
 namespace SimpleFPS
 {
-    public class WeaponVisualFirstPerson : MonoBehaviour
+    public class WeaponVisualFirstPerson : WeaponVisual
     {
-        public WeaponData data;
     }
 }
