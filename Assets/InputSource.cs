@@ -32,5 +32,11 @@ namespace SimpleFPS
 			if (ctx.performed) Buttons.Set(button, true);
 			else if (ctx.canceled) Buttons.Set(button, false);
 		}
+
+		private void Awake()
+		{
+			Application.targetFrameRate = 144;
+			QualitySettings.vSyncCount = 0;
+		}
 	}
 }

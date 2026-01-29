@@ -491,6 +491,12 @@ namespace SimpleFPS
 				_switchApplied = true;
 			}
 
+			CalculateFirerateOfCurrentWeapon();
+		}
+
+		public void CalculateFirerateOfCurrentWeapon()
+		{
+			var weaponState = WeaponsOwned[ActiveWeaponSlot];
 			// calculate fire cooldown in ticks
 			var weaponFireRate = WeaponDatabase.weaponList.GetWeaponData(weaponState.WeaponType).ShotsPerSecond;
 			float fireTime = 1f / weaponFireRate;
@@ -670,6 +676,8 @@ namespace SimpleFPS
 			thirdPersonWeaponVisual = Instantiate(weaponToSpawn, thirdPersonWeaponParent);
 			LayerTools.SetLayerRecursively(thirdPersonWeaponVisual.gameObject, ThirdPersonSetup.WeaponLayer);
 			ThirdPersonSetup.Animator.SetFloat(AnimatorId.WeaponId, (int)weaponToSpawn.ThirdPersonAnimationType);
+
+			CalculateFirerateOfCurrentWeapon();
 		}
 
 		public void SpawnWeaponOnBack(WeaponState weaponInstance)

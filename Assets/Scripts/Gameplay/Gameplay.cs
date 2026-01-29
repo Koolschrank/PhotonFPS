@@ -68,6 +68,9 @@ namespace SimpleFPS
 		private List<PlayerData> _tempPlayerData = new(16);
 		private List<Transform> _recentSpawnPoints = new(4);
 
+		private Dictionary<PlayerKey, Coroutine> _respawnCoroutines = new();
+
+
 		// Called when the gameplay object is spawned into the world
 		public override void Spawned()
 		{
@@ -262,14 +265,21 @@ namespace SimpleFPS
 				PlayerData.Set(victimKey, victimData);
 			}
 
+
+			if (_respawnCoroutines.TryGetValue(victimKey, out var c))
+			{
+				StopCoroutine(c);
+			}
+
 			RPC_PlayerKilled(killerKey, victimKey, weaponType, isCritical);
-			StartCoroutine(RespawnPlayer(victimKey, PlayerRespawnTime));
+			_respawnCoroutines[victimKey] = StartCoroutine(RespawnPlayer(victimKey, PlayerRespawnTime));
 			RecalculateStatisticPositions();
 		}
 
 
 		private IEnumerator RespawnPlayer(PlayerKey key, float delay)
 		{
+			Debug.Log($"RespawnPlayer coroutine started for {key} with delay {delay}");
 			if (delay > 0f)
 				yield return new WaitForSecondsRealtime(delay);
 

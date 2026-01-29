@@ -1329,7 +1329,6 @@ GameObject:
   - component: {fileID: 3297568450549869079}
   - component: {fileID: 6370244926997209924}
   - component: {fileID: 7289181853176218816}
-  - component: {fileID: 8282734940496870642}
   - component: {fileID: 3343799980989206046}
   - component: {fileID: 7240184518650970733}
   - component: {fileID: 5374299559181985757}
@@ -1388,7 +1387,6 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 7289181853176218816}
-  - {fileID: 8282734940496870642}
   - {fileID: 3343799980989206046}
   - {fileID: 7240184518650970733}
   - {fileID: 5374299559181985757}
@@ -1462,18 +1460,6 @@ MonoBehaviour:
   GroundDeceleration: 25
   AirAcceleration: 25
   AirDeceleration: 1.3
---- !u!114 &8282734940496870642
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7812586951838351475}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5edcb8eb1153a24c81c22d608645779, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &3343799980989206046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1660,6 +1646,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 6250869745270454292}
   player: {fileID: 7289181853176218816}
+  __fireCount: 0
 --- !u!1 &8169286849145927954
 GameObject:
   m_ObjectHideFlags: 0
