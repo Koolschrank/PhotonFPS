@@ -17,6 +17,7 @@ namespace SimpleFPS
 		public GameObject MuzzleFlashPrefab;
 
 		[Header("Hitscan Visuals")]
+		public HitscanProjectileVisual HitscanVisual;
 		public GameObject HitscanBulletTrailPrefab;
 		public GameObject HitscanImpactPrefab;
 
@@ -109,21 +110,14 @@ namespace SimpleFPS
 
 		void SpawnHitscanVisuals(FireEvent fireEvent)
 		{
-			Debug.Log(gameObject.name + " fired");
-
-			return;
-
-			if (!fireEvent.HasHit)
-				return;
-
-			if (HitscanImpactPrefab == null)
-				return;
-
-			Instantiate(
-				HitscanImpactPrefab,
-				fireEvent.HitPosition,
-				Quaternion.LookRotation(fireEvent.HitNormal)
+			var bullet = Instantiate(
+				HitscanVisual,
+				MuzzleTransform.position,
+				MuzzleTransform.rotation
 			);
+
+			LayerTools.SetLayerRecursively(bullet.gameObject, gameObject.layer);
+			bullet.SetUp(fireEvent);
 		}
 
 		// ----------------------------------------------------

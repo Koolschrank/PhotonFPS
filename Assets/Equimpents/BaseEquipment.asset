@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dee3e3b6b55ccf047a74a10310079266, type: 3}
   m_Name: BaseEquipment
   m_EditorClassIdentifier: 
-  weaponInHand: 1
-  weaponInHandMagazins: 4
-  secondaryWeapon: 0
-  secondaryWeaponMagazins: 0
+  weaponInHand: 2
+  weaponInHandMagazins: 10
+  secondaryWeapon: 1
+  secondaryWeaponMagazins: 4

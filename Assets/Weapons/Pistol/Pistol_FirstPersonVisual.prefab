@@ -401,12 +401,14 @@ MonoBehaviour:
   LeftHandHandle: {fileID: 274789368581022364}
   MuzzleTransform: {fileID: 5518046497412938168}
   MuzzleFlashPrefab: {fileID: 0}
+  HitscanVisual: {fileID: 7491510959155936860, guid: 5041eeb12cd5049cea0ffc96bb0676f5, type: 3}
   HitscanBulletTrailPrefab: {fileID: 0}
   HitscanImpactPrefab: {fileID: 0}
   ProjectileVisualFP: {fileID: 0}
   ProjectileVisualTP: {fileID: 0}
   ConvergeTimeFP: 0.1
   ConvergeTimeTP: 0.05
+  HandsAnimatorController: {fileID: 9100000, guid: 2183be9b4d5ae4984b4ca1cf58a59186, type: 2}
 --- !u!1 &8433362556789427594
 GameObject:
   m_ObjectHideFlags: 0

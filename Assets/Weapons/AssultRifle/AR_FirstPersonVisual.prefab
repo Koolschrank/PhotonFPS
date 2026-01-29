@@ -589,9 +589,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1136030065507916113}
   - component: {fileID: 577924028802104077}
-  - component: {fileID: 2737856239244024688}
+  - component: {fileID: 1305907227090216070}
   m_Layer: 0
-  m_Name: Rifle_VisualFPS
+  m_Name: AR_FirstPersonVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -642,7 +642,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &2737856239244024688
+--- !u!114 &1305907227090216070
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -651,16 +651,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 6665629179381567357}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c818ec831800bb4da48f7ea4b942376, type: 3}
+  m_Script: {fileID: 11500000, guid: 1712dd6c52786654fbedf79eed2c90ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Pivot: {fileID: 7419963891272882986}
-  LeftHandHandle: {fileID: 124320248261649741}
+  Data: {fileID: 11400000, guid: 6dd3afd617a8f9f4ba4a375dca27ca71, type: 2}
   WeaponAnimator: {fileID: 577924028802104077}
+  Pivot: {fileID: 1136030065507916113}
+  LeftHandHandle: {fileID: 0}
   MuzzleTransform: {fileID: 7831176266669408985}
-  MuzzleEffectPrefab: {fileID: 1569246640813692, guid: 43ab0ca5d42daf04a99c67697d0e9414, type: 3}
-  ProjectileVisualPrefab: {fileID: 7491510959155936860, guid: 5041eeb12cd5049cea0ffc96bb0676f5, type: 3}
-  _muzzleEffectInstance: {fileID: 0}
+  MuzzleFlashPrefab: {fileID: 0}
+  HitscanVisual: {fileID: 7491510959155936860, guid: 5041eeb12cd5049cea0ffc96bb0676f5, type: 3}
+  HitscanBulletTrailPrefab: {fileID: 0}
+  HitscanImpactPrefab: {fileID: 0}
+  ProjectileVisualFP: {fileID: 0}
+  ProjectileVisualTP: {fileID: 0}
+  ConvergeTimeFP: 0.1
+  ConvergeTimeTP: 0.05
+  HandsAnimatorController: {fileID: 9100000, guid: a97c08e4a95434b13970211c1e2cdc87, type: 2}
 --- !u!1 &8105799503310786414
 GameObject:
   m_ObjectHideFlags: 0

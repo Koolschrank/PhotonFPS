@@ -21,7 +21,6 @@ namespace SimpleFPS
 
 		[Header("Ammo")]
 		public int MagazinSize = 12;
-		public int StartAmmo = 25;
 		public float ReloadTime = 2f;
 		[Range(0f, 1f)]
 		public float ReloadFillAt = 0.7f;

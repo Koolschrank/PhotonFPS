@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3e45c48490b026a4db08bcb5fa2470ad, type: 3}
-  m_Name: PistolBullet
+  m_Name: AssultRifleBullet
   m_EditorClassIdentifier: 
-  Damage: 40
-  DamageForce: 100
+  Damage: 20
+  DamageForce: 50
   HitMask:
     serializedVersion: 2
     m_Bits: 64

@@ -7,7 +7,7 @@ namespace SimpleFPS
 	/// effect at the end.
 	/// Note: Notice this script is standard MonoBehaviour without any networking functionality.
 	/// </summary>
-	public class ProjectileVisual : MonoBehaviour
+	public class HitscanProjectileVisual : MonoBehaviour
 	{
 		[Header("Projectile Setup")]
 		public float Speed = 80f;
@@ -27,6 +27,14 @@ namespace SimpleFPS
 
 		private float _startTime;
 		private float _duration;
+
+		public void SetUp(FireEvent fireEvent)
+		{
+			SetHit (
+				fireEvent.HitPosition,
+				fireEvent.HitNormal, 
+				fireEvent.HasHit);
+		}
 
 		/// <summary>
 		/// Set where the projectile visual should land.

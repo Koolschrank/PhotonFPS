@@ -11,11 +11,5 @@ namespace SimpleFPS
 		public float MaxHitDistance = 100f;
 		[Range(1, 20)]
 		public int ProjectilesPerShot = 1;
-
-		public GameObject fpsViewBulletTrail;
-		public GameObject thirdPersonBulletTrail;
-
-
-
 	}
 }

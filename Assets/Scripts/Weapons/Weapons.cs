@@ -156,7 +156,7 @@ namespace SimpleFPS
 			else if (switchWeaponPressed)
 			{
 				// cancel reloading if releoading
-				SwitchWeapon();
+				TryStartSwitchWeapon();
 			}
 			else if (reloadPressed)
 			{
@@ -404,10 +404,22 @@ namespace SimpleFPS
 			var otherWeaponData = WeaponsOwned[otherWeaponSlot];
 			if (otherWeaponData.WeaponType == EWeaponType.None)
 				return;
+
+			if (IsSwitching) return;
+			if (InFireCooldown) return;
+			if (InMeleeCooldown) return;
+			if (InGranadeThrowCooldown) return;
+
+			StartSwitchWeapon();
 		}
 
 		public void StartSwitchWeapon()
 		{
+			if (InReloadCooldown)
+			{
+				CancelReload();
+			}
+
 			var currentWeaponData = WeaponsOwned[ActiveWeaponSlot];
 			int otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
 			var otherWeaponData = WeaponsOwned[otherWeaponSlot];
@@ -583,6 +595,9 @@ namespace SimpleFPS
 				SpawnFirstPersonWeapon(currentWeaponState);
 			}
 
+			
+			
+
 			/*
 			if (_firstPersonActive && !visibleWeapon.firstPersonVisible)
 			{
@@ -645,6 +660,8 @@ namespace SimpleFPS
 			var weaponToSpawn = WeaponDatabase.weaponList.GetWeaponData(weaponInstance.WeaponType).weaponVisualFirstPerson;
 			firstPersonWeaponVisual = Instantiate(weaponToSpawn, firstPersonWeaponParent);
 			LayerTools.SetLayerRecursively(firstPersonWeaponVisual.gameObject, FirstPersonSetup.WeaponLayer);
+
+			FirstPersonSetup.Animator.runtimeAnimatorController = weaponToSpawn.HandsAnimatorController;
 		}
 
 		public void SpawnThirdPersonWeapon(WeaponState weaponInstance)
@@ -652,6 +669,7 @@ namespace SimpleFPS
 			var weaponToSpawn = WeaponDatabase.weaponList.GetWeaponData(weaponInstance.WeaponType).weaponVisualThirdPerson;
 			thirdPersonWeaponVisual = Instantiate(weaponToSpawn, thirdPersonWeaponParent);
 			LayerTools.SetLayerRecursively(thirdPersonWeaponVisual.gameObject, ThirdPersonSetup.WeaponLayer);
+			ThirdPersonSetup.Animator.SetFloat(AnimatorId.WeaponId, (int)weaponToSpawn.ThirdPersonAnimationType);
 		}
 
 		public void SpawnWeaponOnBack(WeaponState weaponInstance)
@@ -666,12 +684,10 @@ namespace SimpleFPS
 
 			if (firstPersonWeaponVisual != null)
 			{
-				// shoot fp
 				firstPersonWeaponVisual.OnFire(fireEvent);
 			}
 			if (thirdPersonWeaponVisual != null)
 			{
-				// shoot tp
 				thirdPersonWeaponVisual.OnFire(fireEvent);
 			}
 		}
