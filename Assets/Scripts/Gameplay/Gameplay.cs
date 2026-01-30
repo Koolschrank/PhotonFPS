@@ -185,43 +185,54 @@ namespace SimpleFPS
 			data.IsConnected = true;
 			data.IsAlive = true;
 			PlayerData.Set(key, data);
-			
-
-			RespawnPlayer(key);
-		}
-
-		public void RespawnPlayer(PlayerKey playerKey)
-		{
-			if (!HasStateAuthority) return;
-
-			if (PlayerDict.TryGetValue(playerKey, out var existingPlayer))
-			{
-				Runner.Despawn(existingPlayer.Object);
-				PlayerDict.Remove(playerKey);
-			}
-
 			var spawnPoint = GetSpawnPoint();
 
 			var player = Runner.Spawn(
-				PlayerPrefab, 
-				spawnPoint.position, 
-				spawnPoint.rotation, 
-				playerKey.PlayerRef, 
+				PlayerPrefab,
+				spawnPoint.position,
+				spawnPoint.rotation,
+				playerRef,
 				onBeforeSpawned: (runner, newObj) =>
 				{
 					if (newObj.TryGetComponent(out Player p))
 					{
-						p.LocalIndex = playerKey.LocalIndex;
-						
+						p.LocalIndex = localIndex;
+
 					}
 					if (newObj.TryGetComponent(out Weapons weapons))
 					{
 						weapons.ApplyEquipment(startEquipment);
 					}
 				});
-			PlayerDict.Add(playerKey, player);
+			PlayerDict.Add(key, player);
 
-			Runner.SetPlayerObject(playerKey.PlayerRef, player.Object);
+			if (localIndex == 0)
+			{
+				Runner.SetPlayerObject(playerRef, player.Object);
+			}
+
+
+			
+		}
+
+		public void RespawnPlayer(PlayerKey playerKey)
+		{
+			if (!HasStateAuthority) return;
+
+
+			PlayerDict.TryGetValue(playerKey, out var existingPlayer);
+
+			var spawnPoint = GetSpawnPoint();
+			var player = existingPlayer.GetComponent<Player>();
+			
+			var weapons = existingPlayer.GetComponent<Weapons>();
+			
+			existingPlayer.transform.position = spawnPoint.position;
+			existingPlayer.transform.rotation = spawnPoint.rotation;
+			
+
+			weapons.ApplyEquipment(startEquipment);
+
 			RecalculateStatisticPositions();
 		}
 

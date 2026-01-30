@@ -80,6 +80,21 @@ namespace SimpleFPS
 				LocalIndex_OnChangedRender();
 		}
 
+		public void Respawn(RespawnInfo respawnInfo)
+		{
+			if (!HasStateAuthority) return;
+
+			// move player to respawn position
+			KCC.SetPosition(respawnInfo.Position);
+			KCC.SetLookRotation(respawnInfo.Rotation);
+
+			Health.ResetHealth();
+			SwitchToFirstPersonCamera();
+
+			Weapons.ApplyEquipment(respawnInfo.Equipment);
+
+		}
+
 
 		private void LocalIndex_OnChangedRender()
 		{
@@ -122,7 +137,18 @@ namespace SimpleFPS
 
 			var screenManager = ScreenManager.Instance;
 			LayerTools.SetLayerRecursively(ThirdPersonRoot, 0);//screenManager.deadPlayerLayer);
+		}
 
+		public void SwitchToFirstPersonCamera()
+		{
+			var virtualCam = CameraHandle.GetComponentInChildren<CinemachineCamera>(true);
+			virtualCam.gameObject.SetActive(true);
+			thirdPersonCamera.gameObject.SetActive(false);
+			var screenManager = ScreenManager.Instance;
+			int cameraLayer = screenManager.firstPersonLayerStart + LocalIndex * 2;
+			int thirdPersonLayer = cameraLayer + 1;
+			LayerTools.SetLayerRecursively(FirstPersonRoot, cameraLayer);
+			LayerTools.SetLayerRecursively(ThirdPersonRoot, thirdPersonLayer);
 		}
 
 
@@ -308,5 +334,12 @@ namespace SimpleFPS
 		}
 
 		#endregion
+	}
+
+	public struct RespawnInfo
+	{
+		public Vector3 Position;
+		public Quaternion Rotation;
+		public PlayerEquipment Equipment;
 	}
 }

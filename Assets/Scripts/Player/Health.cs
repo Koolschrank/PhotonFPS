@@ -44,6 +44,16 @@ namespace SimpleFPS
 		private int _visibleHitCount;
 		private SceneObjects _sceneObjects;
 
+		public void ResetHealth()
+		{
+			if (HasStateAuthority)
+			{
+				CurrentHealth = MaxHealth;
+				CurrentShield = MaxShild;
+				_immortalTimer = TickTimer.CreateFromSeconds(Runner, ImmortalDurationAfterSpawn);
+			}
+		}
+
 		public bool ApplyDamage(PlayerKey instigator, float damage, float damageForce, Vector3 position, Vector3 direction, EWeaponType weaponType, bool isCritical)
 		{
 			if (CurrentHealth <= 0f)
