@@ -15,3 +15,7 @@ MonoBehaviour:
   weapons:
   - {fileID: 11400000, guid: 1513cebb72ca9f648827ffa935c8a7ef, type: 2}
   - {fileID: 11400000, guid: 6dd3afd617a8f9f4ba4a375dca27ca71, type: 2}
+  grenades:
+  - {fileID: 11400000, guid: 5d85cc4e4c60cdd4e858d799fc0926c9, type: 2}
+  - {fileID: 11400000, guid: bcfd5757c19cb444c85c974dc0d35536, type: 2}
+  - {fileID: 11400000, guid: 90ec1939c32126c429e4f18e30d4a035, type: 2}

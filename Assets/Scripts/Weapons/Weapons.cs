@@ -1,17 +1,11 @@
-using System;
 using Fusion;
-using NUnit.Framework;
+using System;
 using UnityEngine;
+using static UnityEngine.UIElements.UxmlAttributeDescription;
 
 namespace SimpleFPS
 {
-	public struct WeaponState : INetworkStruct
-	{
-		public EWeaponType WeaponType;
-		public int AmmoInMagazin;
-		public int AmmoReserve;
-		public float Util;       // meaning depends on weapon like zoom level for sniper, charge level for charge weapon etc.
-	}
+	
 
 
 	/// <summary>
@@ -34,10 +28,18 @@ namespace SimpleFPS
 		public AudioSource SwitchSound;
 
 		[Networked, Capacity(2)]
-		public NetworkArray<WeaponState> WeaponsOwned { get; }
+		public NetworkArray<WeaponState> WeaponsOwned { get; set; }
 
 		[Networked]
 		public int ActiveWeaponSlot { get; set; }
+
+		public GrenadePouch grenadePouch; // this should later be set via gamemode or player equipment system
+
+		[Networked, Capacity(4)]
+		public NetworkArray<int> GrenadesOwned { get; set; }
+
+		[Networked]
+		public int ActiveGrenadeSlot { get; set; }
 
 		[Networked] private TickTimer _fireCooldown { get; set; }
 		[Networked] private TickTimer _reloadCooldown { get; set; }
@@ -68,13 +70,6 @@ namespace SimpleFPS
 
 		public bool _firstPersonActive;
 		public bool _thirdPersonActive;
-
-		[HideInInspector]
-		public Granade[] AllGranades;
-
-		[Networked, HideInInspector]
-		public Granade CurrentGranade { get; set; }
-
 
 		public Transform firstPersonWeaponParent;
 		private WeaponVisualFirstPerson firstPersonWeaponVisual;
@@ -128,6 +123,19 @@ namespace SimpleFPS
 					AmmoReserve = magazinSize * (playerEquipment.secondaryWeaponMagazins - 1)
 				});
 			}
+
+			if (grenadePouch != null) // here starting grenades are set even though right now grenades are not part of player equipment but part of this script
+			{
+				for (int i = 0; i < grenadePouch.grenadeSlots.Length; i++)
+				{
+					var grendeSlot = grenadePouch.grenadeSlots[i];
+					GrenadesOwned.Set(i, grendeSlot.startingGrenades);
+					ActiveGrenadeSlot = 0;
+				}
+
+
+			}
+
 			EquipWeapon(ActiveWeaponSlot);
 		}
 
@@ -277,11 +285,28 @@ namespace SimpleFPS
 
 		public void ThrowGranade()
 		{
-			if (CurrentGranade == null || IsSwitching)
+			if (ActiveGrenadeSlot < 0 
+				|| ActiveGrenadeSlot >= GrenadesOwned.Length 
+				|| GrenadesOwned[ActiveGrenadeSlot] <= 0)
 				return;
+			
+			if (HasStateAuthority)
+			{
+				var grenadeType = grenadePouch.grenadeSlots[ActiveGrenadeSlot].grenadeType;
+				var grenadeData = WeaponDatabase.GetGrenadeData(grenadeType);
+				var throwPosition = FireTransform.position;
+				var throwDirection = FireTransform.forward;
+				throwDirection = Quaternion.Euler(-grenadeData.throwArc, 0, 0) * throwDirection;
+				float throwForce = grenadeData.throwForce;
+				Quaternion rotation = Quaternion.LookRotation(throwDirection, Vector3.up);
 
-			if (CurrentGranade.Throw(FireTransform.position, FireTransform.forward) == false)
-				return;
+				var projectile = Runner.Spawn(grenadeData.granadeProjectile, throwPosition, rotation, Object.InputAuthority) as GranadeProjectile;
+				projectile.Throw(throwPosition, rotation, throwForce);
+
+				
+				int grenadesLeft = GrenadesOwned[ActiveGrenadeSlot] - 1;
+				GrenadesOwned.Set(ActiveGrenadeSlot, grenadesLeft);
+			}
 		}
 
 		public void TryFire(bool justPressed)
@@ -460,7 +485,7 @@ namespace SimpleFPS
 		public void SwitchWeapon()
 		{
 			int otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
-			EquipWeapon(otherWeaponSlot);
+			EquipWeapon((byte)otherWeaponSlot);
 			_switchApplied = true;
 
 
@@ -567,23 +592,11 @@ namespace SimpleFPS
 
 		private void Awake()
 		{
-			// All weapons are already present inside Player prefab.
-			// This is the simplest solution when only few weapons are available in the game.
-			
-			AllGranades = GetComponentsInChildren<Granade>();
-
 			WeaponFireHandler.OnFire += VisulizeHitBullet;
 		}
 
 		public override void Spawned()
 		{
-			if (HasStateAuthority)
-			{
-				//CurrentWeapon = AllWeapons[0];
-				//CurrentWeapon.IsCollected = true;
-
-				CurrentGranade = AllGranades[0];
-			}
 		}
 
 		public override void Render()

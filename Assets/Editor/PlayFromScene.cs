@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 [InitializeOnLoad]
 public static class PlayFromScene
 {
+
 	private const string startScene = "Assets/Scenes/Startup.unity";
 
 	private static string previousScenePath;

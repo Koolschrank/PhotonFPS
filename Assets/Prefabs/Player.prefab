@@ -1523,10 +1523,11 @@ MonoBehaviour:
   WeaponSwitchTime: 0.7
   SwitchSound: {fileID: 1864624483927680187}
   _ActiveWeaponSlot: 0
+  grenadePouch: {fileID: 11400000, guid: 433b09a5790813447a4ab0ac296559d7, type: 2}
+  _GrenadesOwned: 
+  _ActiveGrenadeSlot: 0
   _firstPersonActive: 0
   _thirdPersonActive: 0
-  AllGranades: []
-  _CurrentGranade: {fileID: 0}
   firstPersonWeaponParent: {fileID: 3240532212386438332}
   thirdPersonWeaponParent: {fileID: 1415502030778578817}
   backWeaponParent: {fileID: 4859575369721234562}

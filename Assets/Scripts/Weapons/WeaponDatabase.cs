@@ -11,6 +11,11 @@ namespace SimpleFPS
 			return weaponList.GetWeaponData(type);
 		}
 
+		public static GrenadeData GetGrenadeData(EGrenadeType type)
+		{
+			return weaponList.GetGrenadeData(type);
+		}
+
 		[RuntimeInitializeOnLoadMethod]
 		static void Init()
 		{

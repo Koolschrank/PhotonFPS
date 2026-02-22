@@ -6,53 +6,7 @@ using UnityEngine.Serialization;
 
 namespace SimpleFPS
 {
-	public enum EShootType
-	{
-		Single = 0,
-		Automatic = 1,
-		Burst = 2,
-
-		chargeInstantRelease = 10,
-		chargeManualRelease = 11,
-		chargeAutomatic = 12,
-
-		specialMelee = 20,
-
-	}
-
-	public enum EWeaponType
-	{
-		None = 0,
-		Pistol = 1,
-		AssultRifle = 2,
-		BattleRifle = 3,
-		Shotgun = 4,
-		SniperRifle = 5,
-		RocketLauncher = 6,
-		PlasmaRifle = 7,
-		LaserGun = 8,
-		DualSMG = 9,
-		HeavyCrossbow = 10,
-
-		Hammer = 20,
-		GreatSword = 21,
-
-		GrenadeLauncher = 31,
-		FireGrenadeLauncher = 32,
-
-		HealBeam = 40,
-		GravityGun = 41,
-
-	}
-
-	public enum EWeaponThirdPersonAnimationType
-	{
-		None,
-		Pistol = 1,
-		Rifle = 2,
-		Shotgun = 3,
-		
-	}
+	
 
 	/// <summary>
 	/// Main script that handles all the shooting. Weapon fires hitscan projectiles that are synchronized
