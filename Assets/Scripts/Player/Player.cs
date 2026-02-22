@@ -80,19 +80,42 @@ namespace SimpleFPS
 				LocalIndex_OnChangedRender();
 		}
 
+		private bool _justRespawned;
+
 		public void Respawn(RespawnInfo respawnInfo)
 		{
-			if (!HasStateAuthority) return;
-
 			// move player to respawn position
+			_moveVelocity = Vector3.zero;
+			KCC.ResetVelocity();
 			KCC.SetPosition(respawnInfo.Position);
 			KCC.SetLookRotation(respawnInfo.Rotation);
+			_previousButtons = default;
+
 
 			Health.ResetHealth();
-			SwitchToFirstPersonCamera();
 
 			Weapons.ApplyEquipment(respawnInfo.Equipment);
+			EnableHitBox();
 
+			_justRespawned = true;
+
+
+		}
+
+		// respawn logic that is not networked
+		public void LocalRespawn()
+		{
+			if (HasInputAuthority)
+			{
+				SwitchToFirstPersonCamera();
+				SetVisuals(true, true);
+			}
+			else
+			{
+				SetVisuals(false, true);
+			}
+
+			RagdollSpawner.DecoupleRagdoll();
 		}
 
 
@@ -154,6 +177,12 @@ namespace SimpleFPS
 
 		public override void FixedUpdateNetwork()
 		{
+			if (_justRespawned) // skip a tick to avoid movement glitches
+			{
+				_justRespawned = false;
+				return;
+			}
+
 			if (_sceneObjects.Gameplay.State == EGameplayState.Finished)
 			{
 				MovePlayer();
@@ -163,10 +192,9 @@ namespace SimpleFPS
 			if (!Health.IsAlive)
 			{
 				MovePlayer();
-				KCC.SetColliderLayer(LayerMask.NameToLayer("Ignore Raycast"));
-				KCC.SetCollisionLayerMask(LayerMask.GetMask("Default"));
-				HitboxRoot.HitboxRootActive = false;
-				
+				DisableHitBox();
+				Weapons.DropEverything();
+
 				return;
 			}
 
@@ -185,6 +213,21 @@ namespace SimpleFPS
 			Weapons.SimulateTick();
 		}
 
+		public void DisableHitBox()
+		{
+			KCC.SetColliderLayer(LayerMask.NameToLayer("Ignore Raycast"));
+			KCC.SetCollisionLayerMask(LayerMask.GetMask("Default"));
+			HitboxRoot.HitboxRootActive = false;
+		}
+
+		public void EnableHitBox()
+		{
+			KCC.SetColliderLayer(LayerMask.NameToLayer("PlayerKCC"));
+			KCC.SetCollisionLayerMask(LayerMask.GetMask("Default", "PlayerKCC"));
+			HitboxRoot.HitboxRootActive = true;
+		}
+
+		bool isLocallyAlive = false;
 		public override void Render()
 		{
 			if (_sceneObjects.Gameplay.State == EGameplayState.Finished) return;
@@ -213,16 +256,18 @@ namespace SimpleFPS
 				if (!RagdollSpawner.IsRagdollSpawned)
 				{
 					RagdollSpawner.bulletImpact = Health.ragdollBulletImpact;
-					RagdollSpawner.SpawnRagdoll();
+					RagdollSpawner.ActivateRagdoll();
 					SetVisuals(false, !RagdollSpawner.IsRagdollSpawned);
 					SwitchToThirdPersonCamera();
 				}
-
-
-				
+				isLocallyAlive = false;
 			}
 			else
 			{
+				if (!isLocallyAlive)
+				{
+					LocalRespawn();
+				}
 
 				// resets to alive in case player died but host disagreed with death
 				if (RagdollSpawner.IsRagdollSpawned)
@@ -232,6 +277,7 @@ namespace SimpleFPS
 					SetVisuals(HasInputAuthority, true);
 					// TODO: switch to first person camera still needed
 				}
+				isLocallyAlive = true;
 			}
 
 

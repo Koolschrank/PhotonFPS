@@ -9,7 +9,6 @@ namespace SimpleFPS
 	{
 	    public Image           WeaponIcon;
 	    public Image           WeaponIconShadow;
-	    public TextMeshProUGUI WeaponName;
 		public TextMeshProUGUI ClipAmmo;
 		public TextMeshProUGUI RemainingAmmo;
 	    public Image           AmmoProgress;
@@ -34,6 +33,18 @@ namespace SimpleFPS
 			{
 				return;
 			}
+			if ( weapon.WeaponType == EWeaponType.None )
+			{
+				WeaponIcon.enabled = false;
+				WeaponIconShadow.enabled = false;
+				return;
+			}
+			else
+			{
+				WeaponIcon.enabled = true;
+				WeaponIconShadow.enabled = true;
+			}
+
 			var weaponData = WeaponDatabase.weaponList.GetWeaponData(weapon.WeaponType);
 			_lastweaponType = weapon.WeaponType;
 
@@ -43,6 +54,14 @@ namespace SimpleFPS
 
 	    private void UpdateAmmoProgress(WeaponState weapon)
 	    {
+			if ( weapon.WeaponType == EWeaponType.None )
+			{
+				ClipAmmo.text = "-";
+				RemainingAmmo.text = "-";
+				AmmoProgress.fillAmount = 0;
+				return;
+			}
+
 			if (weapon.AmmoReserve != _lastReserveAmmo)
 			{
 				_lastReserveAmmo = weapon.AmmoReserve;

@@ -1629,8 +1629,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerAnimator: {fileID: 5984569209288009230}
   playerVisualRoot: {fileID: 1055682366495237838}
-  ragdollPrefab: {fileID: 4226250705006454031, guid: a5a6d8d2d23a40642a00b53268c16887, type: 3}
-  _RagdollInstance: {fileID: 0}
+  ragdollPrefab: {fileID: 1525218576529477831, guid: a5a6d8d2d23a40642a00b53268c16887, type: 3}
   IsRagdollSpawned: 0
 --- !u!114 &7981923160990410495
 MonoBehaviour:

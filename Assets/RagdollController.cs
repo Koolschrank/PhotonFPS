@@ -5,7 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class RagdollController : NetworkBehaviour
+public class RagdollController : MonoBehaviour
 {
 	private Rigidbody[] ragdollBones;
 
@@ -54,7 +54,7 @@ public class RagdollController : NetworkBehaviour
 		}
 		SetVisuals(true);
 
-		SceneManager.MoveGameObjectToScene(gameObject, LocalPhysicsManager.LocalScene);
+		//SceneManager.MoveGameObjectToScene(gameObject, LocalPhysicsManager.LocalScene);
 		this.gameObject.SetActive(true);
 	}
 

@@ -15301,7 +15301,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &612259876
 Transform:
   m_ObjectHideFlags: 0
@@ -15324,7 +15324,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 612259875}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 896426346ca0d4e4fa6bea0254394122, type: 3}
   m_Name: 
@@ -15336,7 +15336,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 612259875}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03f9540dceab6974db7b3ab1c798cb81, type: 3}
   m_Name: 
@@ -51703,6 +51703,11 @@ MonoBehaviour:
   _PlayerData:
     _items: []
   _State: 0
+  SpawnPoints:
+  - {fileID: 1558816211}
+  - {fileID: 1995426110}
+  - {fileID: 753301217}
+  - {fileID: 701041027}
 --- !u!114 &1951015468
 MonoBehaviour:
   m_ObjectHideFlags: 0

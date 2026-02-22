@@ -6,25 +6,28 @@ public class RagdollSpawner : NetworkBehaviour
 	[Header("References")]
 	[SerializeField] private Animator playerAnimator;      // Player skeleton
 	[SerializeField] private GameObject playerVisualRoot; // Player mesh root
-	[SerializeField] private NetworkObject ragdollPrefab; // Ragdoll prefab (NetworkObject)
+	[SerializeField] private GameObject ragdollPrefab; // Ragdoll prefab 
 
-	[Networked]
-	public NetworkObject RagdollInstance { get; set; }    // Networked reference for all clients
+	public GameObject RagdollInstance { get; set; }    
 
 	public RagdollBulletImpact bulletImpact;
 	public bool IsRagdollSpawned = false;
 
-	public override void Spawned()
+	
+
+	private void SpawnRagdoll()
 	{
-		// Ensure visuals are visible at spawn
-		if (playerVisualRoot != null)
-			playerVisualRoot.SetActive(true);
 
+		if (RagdollInstance != null)
+			return;
 
-		if (Object.HasStateAuthority)
-		{
-			SpawnRagdoll_HostOnly();
-		}
+		RagdollInstance = Instantiate(ragdollPrefab, transform.position, transform.rotation);
+	}
+
+	public void DecoupleRagdoll()
+	{
+		RagdollInstance = null;
+		IsRagdollSpawned = false;
 	}
 
 	public void CancelRagdoll()
@@ -36,13 +39,13 @@ public class RagdollSpawner : NetworkBehaviour
 		IsRagdollSpawned = false;
 	}
 
-	public void SpawnRagdoll()
-	{
-		if (RagdollInstance == null)
-			return;
 
-		
+
+	public void ActivateRagdoll()
+	{
 		IsRagdollSpawned = true;
+		if (RagdollInstance == null)
+			SpawnRagdoll();
 
 		var ragdoll = RagdollInstance.GetComponent<RagdollController>();
 		ragdoll.StartRagdoll();
@@ -60,18 +63,7 @@ public class RagdollSpawner : NetworkBehaviour
 		}
 	}
 
-	/// <summary>
-	/// Host-only function to spawn the ragdoll
-	/// </summary>
-	private void SpawnRagdoll_HostOnly()
-	{
-		if (RagdollInstance != null)
-			return;
-
-		// Spawn the ragdoll NetworkObject
-		var rag = Runner.Spawn(ragdollPrefab, transform.position, transform.rotation);
-		RagdollInstance = rag; // Networked reference synced to clients
-	}
+	
 
 	
 }

@@ -393,9 +393,27 @@ namespace SimpleFPS
 			_reloadCooldown = TickTimer.None;
 		}
 
+		public void DropEverything()
+			{
+			DropWeapon();
+			RemoveBackWeapon();
+		}
+
 		public void DropWeapon()
 		{
 			WeaponsOwned.Set(ActiveWeaponSlot, new WeaponState { WeaponType = EWeaponType.None, AmmoInMagazin = 0, AmmoReserve = 0, Util = 0f });
+			if (firstPersonWeaponVisual != null)
+				Destroy(firstPersonWeaponVisual.gameObject);
+			if (thirdPersonWeaponVisual != null)
+				Destroy(thirdPersonWeaponVisual.gameObject);
+		}
+
+		public void RemoveBackWeapon()
+		{
+			int otherWeaponSlot = (ActiveWeaponSlot + 1) % WeaponsOwned.Length;
+			WeaponsOwned.Set(otherWeaponSlot, new WeaponState { WeaponType = EWeaponType.None, AmmoInMagazin = 0, AmmoReserve = 0, Util = 0f });
+			if (weaponOnBackVisual != null)
+				Destroy(weaponOnBackVisual.gameObject);
 		}
 
 		public void TryStartSwitchWeapon()

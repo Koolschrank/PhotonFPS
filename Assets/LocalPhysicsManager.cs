@@ -21,6 +21,7 @@ public class LocalPhysicsManager : MonoBehaviour
 
 	private void FixedUpdate()
 	{
+
 		LocalPhysicsScene.Simulate(Time.fixedDeltaTime);
 	}
 }

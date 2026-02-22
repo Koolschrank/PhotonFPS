@@ -66,10 +66,11 @@ namespace SimpleFPS
 		private List<Player> _spawnedPlayers = new(16);
 		private List<PlayerRef> _pendingPlayers = new(16);
 		private List<PlayerData> _tempPlayerData = new(16);
-		private List<Transform> _recentSpawnPoints = new(4);
 
 		private Dictionary<PlayerKey, Coroutine> _respawnCoroutines = new();
 
+
+		public SpawnPoint[] SpawnPoints;
 
 		// Called when the gameplay object is spawned into the world
 		public override void Spawned()
@@ -185,24 +186,21 @@ namespace SimpleFPS
 			data.IsConnected = true;
 			data.IsAlive = true;
 			PlayerData.Set(key, data);
-			var spawnPoint = GetSpawnPoint();
+			var respawnInfo = CreateRespawnInfo(key);
 
 			var player = Runner.Spawn(
 				PlayerPrefab,
-				spawnPoint.position,
-				spawnPoint.rotation,
+				respawnInfo.Position,
+				respawnInfo.Rotation,
 				playerRef,
 				onBeforeSpawned: (runner, newObj) =>
 				{
 					if (newObj.TryGetComponent(out Player p))
 					{
 						p.LocalIndex = localIndex;
-
+						p.Respawn(respawnInfo);
 					}
-					if (newObj.TryGetComponent(out Weapons weapons))
-					{
-						weapons.ApplyEquipment(startEquipment);
-					}
+					
 				});
 			PlayerDict.Add(key, player);
 
@@ -218,22 +216,26 @@ namespace SimpleFPS
 		public void RespawnPlayer(PlayerKey playerKey)
 		{
 			if (!HasStateAuthority) return;
-
+			var respawnInfo = CreateRespawnInfo(playerKey);
 
 			PlayerDict.TryGetValue(playerKey, out var existingPlayer);
 
-			var spawnPoint = GetSpawnPoint();
 			var player = existingPlayer.GetComponent<Player>();
-			
-			var weapons = existingPlayer.GetComponent<Weapons>();
-			
-			existingPlayer.transform.position = spawnPoint.position;
-			existingPlayer.transform.rotation = spawnPoint.rotation;
-			
-
-			weapons.ApplyEquipment(startEquipment);
+			player.Respawn(respawnInfo);
 
 			RecalculateStatisticPositions();
+		}
+
+		public RespawnInfo CreateRespawnInfo(PlayerKey playerKey)
+		{
+			var spawnPoint = GetSpawnPoint();
+			RespawnInfo respawnInfo = new RespawnInfo
+			{
+				Position = spawnPoint.position,
+				Rotation = spawnPoint.rotation,
+				Equipment = startEquipment
+			};
+			return respawnInfo;
 		}
 
 
@@ -335,25 +337,14 @@ namespace SimpleFPS
 			// with a custom mapping per PlayerKey (see notes below).*/
 		}
 
-
+		
 		private Transform GetSpawnPoint()
 		{
 			Transform spawnPoint = default;
 
-			var spawnPoints = Runner.SimulationUnityScene.GetComponents<SpawnPoint>(false);
-			for (int i = 0, offset = UnityEngine.Random.Range(0, spawnPoints.Length); i < spawnPoints.Length; i++)
-			{
-				spawnPoint = spawnPoints[(offset + i) % spawnPoints.Length].transform;
+			// get a random spawn point 
+			spawnPoint = SpawnPoints[UnityEngine.Random.Range(0, SpawnPoints.Length)].transform;
 
-				if (_recentSpawnPoints.Contains(spawnPoint) == false)
-					break;
-			}
-
-			_recentSpawnPoints.Add(spawnPoint);
-			if (_recentSpawnPoints.Count > 3)
-			{
-				_recentSpawnPoints.RemoveAt(0);
-			}
 
 			return spawnPoint;
 		}
