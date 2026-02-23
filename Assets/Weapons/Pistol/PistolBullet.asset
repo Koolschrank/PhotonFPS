@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: PistolBullet
   m_EditorClassIdentifier: 
   Damage: 40
+  DamageMaterial: {fileID: 11400000, guid: 4e720f0908ec39f45aea59e5a7f3d5fc, type: 2}
   DamageForce: 100
   HitMask:
     serializedVersion: 2

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: AssultRifleBullet
   m_EditorClassIdentifier: 
   Damage: 20
+  DamageMaterial: {fileID: 11400000, guid: 4e720f0908ec39f45aea59e5a7f3d5fc, type: 2}
   DamageForce: 50
   HitMask:
     serializedVersion: 2

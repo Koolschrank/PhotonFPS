@@ -1,5 +1,8 @@
 using Fusion;
+using SimpleFPS;
+using System;
 using UnityEngine;
+
 
 namespace SimpleFPS
 {
@@ -9,22 +12,16 @@ namespace SimpleFPS
 	public class Health : NetworkBehaviour
 	{
 		public Player	  Player;
-		public float      MaxHealth = 100f;
-		public float      MaxShild = 100f;
-		public float      ShieldRechargeDelay = 4.5f;
-		public float      ShieldRegenRate = 25f;
+		public HealthBlockData[] HealthBlocks;
 		public float      ImmortalDurationAfterSpawn = 2f;
 		public GameObject ImmortalityIndicator;
 		public GameObject HitEffectPrefab;
 
-		public bool IsAlive => CurrentHealth > 0f;
+		public bool IsAlive => currentHealthValues[0] > 0f;
 		public bool IsImmortal => _immortalTimer.ExpiredOrNotRunning(Runner) == false;
 
-		[Networked]
-		public float CurrentHealth { get; private set; }
-
-		[Networked]
-		public float CurrentShield { get; private set; }
+		[Networked, Capacity(4)]
+		public NetworkArray<float> currentHealthValues { get; }
 
 		[Networked]
 		private int _hitCount { get; set; }
@@ -35,8 +32,18 @@ namespace SimpleFPS
 		[Networked]
 		private TickTimer _immortalTimer { get; set; }
 
-		[Networked]
-		private TickTimer _shildRegenTimer { get; set; }
+		[Networked] private TickTimer healthBlock0Timer { get; set; }
+		[Networked] private TickTimer healthBlock1Timer { get; set; }
+		[Networked] private TickTimer healthBlock2Timer { get; set; }
+		[Networked] private TickTimer healthBlock3Timer { get; set; }
+
+		private TickTimer[] HealthBlockTimers => new[]
+		{
+		healthBlock0Timer,
+		healthBlock1Timer,
+		healthBlock2Timer,
+		healthBlock3Timer
+		};
 
 		[Networked]
 		public RagdollBulletImpact ragdollBulletImpact { get; private set; }
@@ -48,36 +55,67 @@ namespace SimpleFPS
 		{
 			if (HasStateAuthority)
 			{
-				CurrentHealth = MaxHealth;
-				CurrentShield = MaxShild;
+				for (int i = 0; i < HealthBlocks.Length; i++)
+				{
+					currentHealthValues.Set(i, HealthBlocks[i].startEmpty ? 0f : HealthBlocks[i].maxValue);
+				}
 				_immortalTimer = TickTimer.CreateFromSeconds(Runner, ImmortalDurationAfterSpawn);
 			}
 		}
 
-		public bool ApplyDamage(PlayerKey instigator, float damage, float damageForce, Vector3 position, Vector3 direction, EWeaponType weaponType, bool isCritical)
+		public bool ApplyDamage(PlayerKey instigator, float damage, DamageMaterial damageMaterial, float damageForce, Vector3 position, Vector3 direction, EWeaponType weaponType, bool isCritical)
 		{
-			if (CurrentHealth <= 0f)
+			if (!IsAlive)
 				return false;
 
 			if (IsImmortal)
 				return false;
 
-			if (CurrentShield > 0)
+			float remainingDamage = damage;
+			for (int i = HealthBlocks.Length - 1; i >= 0; i--)
+			{
+				float blockHealth = currentHealthValues[i];
+				if (blockHealth <= 0f)
+					continue;
+				HealthBlockData blockData = HealthBlocks[i];
+				HealthMaterial healthMaterial = blockData.healthMaterial;
+				float effectiveDamage = healthMaterial.GetDamage(remainingDamage, damageMaterial);
+				
+				if (effectiveDamage <= blockHealth)
 				{
-				// Apply damage to shield first.
-				float shieldDamage = Mathf.Min(CurrentShield, damage);
-				CurrentShield -= shieldDamage;
-				damage -= shieldDamage;
-				// Start shield regen timer.
-				_shildRegenTimer = TickTimer.CreateFromSeconds(Runner, ShieldRechargeDelay);
+					currentHealthValues.Set(i, blockHealth - effectiveDamage);
+					remainingDamage = 0f;
+
+					// Start recharge timer for this block and all blocks above it.
+					for (int j = i; j < HealthBlocks.Length; j++)
+					{
+						if (HealthBlocks[j].canRecharge)
+						{
+							if (j == 0)
+								healthBlock0Timer = TickTimer.CreateFromSeconds(Runner, HealthBlocks[j].rechargeDelay);
+							else if (j == 1)
+								healthBlock1Timer = TickTimer.CreateFromSeconds(Runner, HealthBlocks[j].rechargeDelay);
+							else if (j == 2)
+								healthBlock2Timer = TickTimer.CreateFromSeconds(Runner, HealthBlocks[j].rechargeDelay);
+							else if (j == 3)
+								healthBlock3Timer = TickTimer.CreateFromSeconds(Runner, HealthBlocks[j].rechargeDelay);
+							
+						}
+					}
+					break;
+				}
+				else
+				{
+					float percentage = blockHealth / effectiveDamage;
+					remainingDamage -= effectiveDamage * percentage;
+					currentHealthValues.Set(i, 0f);
+				}
+				
 			}
 
-
-			CurrentHealth -= damage;
-
-			if (CurrentHealth <= 0f)
+			if (!IsAlive)
 			{
-				CurrentHealth = 0f;
+				currentHealthValues.Set(0, 0f);
 
 				var playerKey = new PlayerKey(Object.InputAuthority, Player.LocalIndex);
 				_sceneObjects.Gameplay.PlayerKilled(instigator, playerKey, weaponType, isCritical);
@@ -102,14 +140,22 @@ namespace SimpleFPS
 			return true;
 		}
 
-		public bool AddHealth(float health)
+		public bool AddHealth(float health, int healthBlockIndex)
 		{
-			if (CurrentHealth <= 0f)
-				return false;
-			if (CurrentHealth >= MaxHealth)
+			if (!IsAlive) 
 				return false;
 
-			CurrentHealth = Mathf.Min(CurrentHealth + health, MaxHealth);
+			var blockData = HealthBlocks[healthBlockIndex];
+			var blockHealth = currentHealthValues.Get(healthBlockIndex);
+			
+
+			if (blockHealth >= blockData.maxValue)
+				return false;
+
+			
+			blockHealth = Mathf.Min(blockHealth + health, blockData.maxValue);
+			currentHealthValues.Set(healthBlockIndex, blockHealth);
+			Debug.Log($"Health block {healthBlockIndex} healed by {health}. Current value: {blockHealth}");
 
 			if (HasInputAuthority && Runner.IsForward)
 			{
@@ -132,9 +178,7 @@ namespace SimpleFPS
 
 			if (HasStateAuthority)
 			{
-				CurrentHealth = MaxHealth;
-				CurrentShield = MaxShild;
-
+				ResetHealth();
 				_immortalTimer = TickTimer.CreateFromSeconds(Runner, ImmortalDurationAfterSpawn);
 			}
 
@@ -144,16 +188,21 @@ namespace SimpleFPS
 		public override void FixedUpdateNetwork()
 		{
 			// Handle shield regeneration on state authority only
-			if (HasStateAuthority && CurrentHealth > 0f)
+			if (HasStateAuthority && IsAlive)
 			{
-				if (_shildRegenTimer.Expired(Runner))
+				for (int i = 0; i < HealthBlocks.Length; i++)
 				{
-					if (CurrentShield < MaxShild)
+					if (HealthBlocks[i].canRecharge && HealthBlockTimers[i].Expired(Runner))
 					{
-						// Regenerate over time
-						CurrentShield = Mathf.Min(CurrentShield + ShieldRegenRate * Runner.DeltaTime, MaxShild);
+						float currentHealth = currentHealthValues[i];
+						float maxHealth = HealthBlocks[i].maxValue;
+						if (currentHealth < maxHealth)
+						{
+							AddHealth(HealthBlocks[i].rechargeSpeed * Runner.DeltaTime, i);
+						}
 					}
 				}
+
 			}
 		}
 
@@ -183,3 +232,5 @@ namespace SimpleFPS
 		}
 	}
 }
+
+

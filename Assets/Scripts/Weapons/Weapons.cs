@@ -28,7 +28,7 @@ namespace SimpleFPS
 		public AudioSource SwitchSound;
 
 		[Networked, Capacity(2)]
-		public NetworkArray<WeaponState> WeaponsOwned { get; set; }
+		public NetworkArray<WeaponState> WeaponsOwned { get; }
 
 		[Networked]
 		public int ActiveWeaponSlot { get; set; }
@@ -36,7 +36,7 @@ namespace SimpleFPS
 		public GrenadePouch grenadePouch; // this should later be set via gamemode or player equipment system
 
 		[Networked, Capacity(4)]
-		public NetworkArray<int> GrenadesOwned { get; set; }
+		public NetworkArray<byte> GrenadesOwned { get; }
 
 		[Networked]
 		public int ActiveGrenadeSlot { get; set; }
@@ -304,7 +304,7 @@ namespace SimpleFPS
 				projectile.Throw(throwPosition, rotation, throwForce);
 
 				
-				int grenadesLeft = GrenadesOwned[ActiveGrenadeSlot] - 1;
+				byte grenadesLeft = (byte)(GrenadesOwned[ActiveGrenadeSlot] - 1);
 				GrenadesOwned.Set(ActiveGrenadeSlot, grenadesLeft);
 			}
 		}

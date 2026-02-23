@@ -43,6 +43,7 @@ public class RagdollSpawner : NetworkBehaviour
 
 	public void ActivateRagdoll()
 	{
+
 		IsRagdollSpawned = true;
 		if (RagdollInstance == null)
 			SpawnRagdoll();

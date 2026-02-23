@@ -39,7 +39,7 @@ namespace SimpleFPS
 			{
 				// Check for Health component on collider game object or any parent.
 				var health = _colliders[i].GetComponentInParent<Health>();
-				if (health != null && health.AddHealth(Heal))
+				if (health != null && health.AddHealth(Heal,0))
 				{
 					// Pickup was successful, activating timer.
 					_activationTimer = TickTimer.CreateFromSeconds(Runner, Cooldown);

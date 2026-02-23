@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace SimpleFPS
@@ -6,4 +7,6 @@ namespace SimpleFPS
     {
         
     }
+
+    
 }

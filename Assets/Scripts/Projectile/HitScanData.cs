@@ -6,6 +6,7 @@ namespace SimpleFPS
 	public class HitScanData : BulletData
     {
 		public float Damage = 10f;
+		public DamageMaterial DamageMaterial;
 		public float DamageForce = 100f;
 		public LayerMask HitMask;
 		public float MaxHitDistance = 100f;

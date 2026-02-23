@@ -1522,6 +1522,7 @@ MonoBehaviour:
     LeftHandSnap: {fileID: 0}
   WeaponSwitchTime: 0.7
   SwitchSound: {fileID: 1864624483927680187}
+  _WeaponsOwned: []
   _ActiveWeaponSlot: 0
   grenadePouch: {fileID: 11400000, guid: 433b09a5790813447a4ab0ac296559d7, type: 2}
   _GrenadesOwned: 
@@ -1565,15 +1566,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Player: {fileID: 7289181853176218816}
-  MaxHealth: 100
-  MaxShild: 100
-  ShieldRechargeDelay: 4.5
-  ShieldRegenRate: 25
+  HealthBlocks:
+  - {fileID: 11400000, guid: aba1fda12c9a8214d968b520c9fb96c9, type: 2}
+  - {fileID: 11400000, guid: a0760bd01f1139641af324c3f7e24a1c, type: 2}
+  - {fileID: 11400000, guid: acd565c0fc5413e4f841f9ca6f9204d3, type: 2}
   ImmortalDurationAfterSpawn: 2
   ImmortalityIndicator: {fileID: 1993090250243549427}
   HitEffectPrefab: {fileID: 3886077773195258213, guid: 8d61043558bc54c7186df551c6a6104f, type: 3}
-  _CurrentHealth: 0
-  _CurrentShield: 0
+  _currentHealthValues: []
 --- !u!114 &7259423219028248817
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -126,7 +126,7 @@ namespace SimpleFPS
 			var OwnerPlayerKey = new PlayerKey(Object.InputAuthority, player.LocalIndex);
 
 
-			if (enemyHealth.ApplyDamage(OwnerPlayerKey, damage, bulletData.DamageForce, position, direction, weaponData.weaponType, isCriticalHit) == false)
+			if (enemyHealth.ApplyDamage(OwnerPlayerKey, damage, bulletData.DamageMaterial, bulletData.DamageForce, position, direction, weaponData.weaponType, isCriticalHit) == false)
 				return;
 
 			if (HasInputAuthority && Runner.IsForward)

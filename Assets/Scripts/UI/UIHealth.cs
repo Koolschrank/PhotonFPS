@@ -26,14 +26,14 @@ namespace SimpleFPS
 		{
 			ImmortalityIndicator.SetActive(health.IsImmortal);
 
-			int currentHealth = Mathf.CeilToInt(health.CurrentHealth);
+			int currentHealth = Mathf.CeilToInt(health.currentHealthValues.Get(0));
 			bool healthDamageTaken = currentHealth < _lastHealth;
 			// Only update if health changed
 			if (currentHealth != _lastHealth)
 			{
 				Value.text = currentHealth.ToString();
 
-				float progress = health.CurrentHealth / health.MaxHealth;
+				float progress = (float)currentHealth / (float)health.HealthBlocks[0].maxValue;
 				Progress.fillAmount = progress;
 				SampleHealthProgressAnimation(progress);
 
@@ -57,12 +57,12 @@ namespace SimpleFPS
 			if (ShieldBar == null)
 				return;
 
-			float currentShield = Mathf.CeilToInt(health.CurrentShield);
+			float currentShield = Mathf.CeilToInt(health.currentHealthValues.Get(1));
 
 			if (currentShield != _lastShield)
 			{
 
-				float progress = health.CurrentShield / health.MaxShild;
+				float progress = currentShield / health.HealthBlocks[1].maxValue;
 				ShieldBar.fillAmount = progress;
 
 				if (currentShield < _lastShield && !healthDamageTaken)
